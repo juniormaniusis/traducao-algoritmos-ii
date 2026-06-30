@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capítulo 1 — Teoria básica de grafos | Análise de Algoritmos II</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script>
+    MathJax = {
+      tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+<div class="container">
+
+  <nav>
+    <a href="index.html">Capa</a>
+    <span class="current">Capítulo 1</span>
+    <a href="capitulo2.html">Capítulo 2</a>
+    <a href="capitulo3.html">Capítulo 3</a>
+  </nav>
+
+  <h1 class="chapter-title">Capítulo 1 &mdash; Teoria básica de grafos</h1>
+
+  <p>
+    Para começar, vamos definir nosso personagem principal. Um <em>grafo</em> (graph) \(G\) é um
+    par ordenado \((V, E)\), onde \(V\) é um conjunto finito e não vazio cujos elementos são
+    chamados de <em>vértices</em> (vertices), e \(E\) é um conjunto de subconjuntos de dois
+    elementos de \(V\); os elementos de \(E\) são chamados de <em>arestas</em> (edges). Assim,
+    cada aresta é um par \(\{u, v\}\) onde \(u\) e \(v\), chamados de <em>extremos</em> da
+    aresta, são vértices distintos de \(V\).<sup id="fn-ref-1"><a href="#fn1">1</a></sup>
+    O conjunto de vértices de um grafo \(G\) é frequentemente denotado por \(V(G)\), e seu
+    conjunto de arestas por \(E(G)\). Quando o grafo \(G\) está claro pelo contexto, costumamos
+    escrever \(V\) e \(E\) em vez de \(V(G)\) e \(E(G)\), respectivamente. Além disso,
+    escrevemos \(uv\) em vez de \(\{u, v\}\), geralmente quando \(\{u, v\}\) é uma aresta de \(G\).
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig1-1.png"
+         alt="Um grafo com conjunto de vértices {a,b,c,d,e} e arestas {ab,ac,bc,bd,ce,de}.">
+    <figcaption>
+      Figura 1.1: Um grafo com conjunto de vértices \(\{a, b, c, d, e\}\) e conjunto de arestas
+      \(\{ab, ac, bc, bd, ce, de\}\).
+    </figcaption>
+  </figure>
+
+  <p>
+    Como as definições a seguir ilustram, muitos conceitos da teoria dos grafos são altamente
+    intuitivos e formalizam relações cotidianas entre entidades do mundo real. Isso ajuda a
+    explicar seu apelo e seu amplo espectro de aplicações práticas.
+  </p>
+
+  <!-- ───────────────────────────────── -->
+  <h2 id="vizinhanca">1.1 Vizinhança de um vértice</h2>
+
+  <p>
+    Para um grafo \(G\), os vértices \(u\) e \(v\) de \(G\) são <em>vizinhos</em> (neighbors)
+    (ou <em>adjacentes</em>) se \(uv \in E(G)\). Dizemos também que \(v\) é um vizinho de
+    \(u\) em \(G\). A <em>vizinhança</em> (neighborhood) de \(u \in V(G)\) é o conjunto
+    \[
+      N_G(u) \,:=\, \bigl\{\, v \in V(G) \;\big|\; uv \in E(G) \,\bigr\},
+    \]
+    e escrevemos \(N(u)\) quando \(G\) está claro pelo contexto. Assim, \(N_G\) é uma função
+    que recebe um vértice como entrada e retorna um conjunto de vértices como saída, isto é,<sup
+    id="fn-ref-2"><a href="#fn2">2</a></sup> \(N_G : V \to 2^V\).
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig1-2.png"
+         alt="A vizinhança do vértice u; os vértices destacados são os vizinhos de u.">
+    <figcaption>
+      Figura 1.2: A vizinhança do vértice \(u\). Os vértices destacados são precisamente os
+      vizinhos de \(u\), isto é, os vértices ligados a \(u\) por uma aresta.
+    </figcaption>
+  </figure>
+
+  <!-- ───────────────────────────────── -->
+  <h2 id="corte-grau">1.2 Corte e grau de um vértice</h2>
+
+  <p>
+    Seja \(G\) um grafo e \(u\) um vértice de \(G\). O <em>corte</em> (cut) de \(u\), denotado
+    por \(\delta_G(u)\), é o conjunto de arestas de \(G\) que são <em>incidentes</em> com \(u\).
+    Formalmente,
+    \[
+      \delta_G(u) \,:=\, \{e \in E \mid u \in e\}.
+    \]
+    A notação \(\delta_G(u)\) é um tanto pesada; quando não há ambiguidade, simplesmente
+    escrevemos \(\delta(u)\), ou até \(\delta_u\).
+  </p>
+  <p>
+    O <em>grau</em> (degree) de \(u\), denotado por \(\deg_G(u)\), ou simplesmente \(\deg(u)\)
+    quando \(G\) está claro pelo contexto, é a cardinalidade de \(\delta_u\). Assim,
+    \[
+      \deg_G(u) \,:=\, |\delta_G(u)|.
+    \]
+    Observe que \(\deg_G(u) = |N_G(u)|\).
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig1-3.png"
+         alt="O corte de um vértice; as arestas destacadas são as incidentes com u, formando δ_G(u).">
+    <figcaption>
+      Figura 1.3: O corte de um vértice. As arestas destacadas são precisamente as arestas
+      incidentes com \(u\); portanto formam \(\delta_G(u)\).
+    </figcaption>
+  </figure>
+
+  <p>
+    Os dois resultados a seguir costumam ser enfatizados entre os primeiros em introduções
+    à teoria dos grafos, e seguiremos essa tradição. Aproveitamos também para introduzir
+    uma notação que será útil.
+  </p>
+  <p>
+    Seja \(U\) um conjunto e \(X \subseteq U\). A <em>função característica</em> de \(X\)
+    relativa a \(U\) é a função
+    \[
+      \mathbf{1}^X_U : U \to \{0,1\}
+    \]
+    definida por
+    \[
+      \mathbf{1}^X_U(u) :=
+      \begin{cases}
+        1, &amp; \text{se } u \in X,\\
+        0, &amp; \text{se } u \notin X,
+      \end{cases}
+    \]
+    para cada \(u \in U\). Observe que
+    \[
+      |X| \;=\; \sum_{u \in U} \mathbf{1}^X_U(u).
+    \]
+    Por brevidade, escreveremos \(\mathbf{1}\) em vez de \(\mathbf{1}^X_U\) sempre que o
+    universo relevante estiver claro pelo contexto. No Lema 1.1 a seguir, adotamos essa
+    convenção e escrevemos \(\mathbf{1}^{\delta_v}\) em lugar de \(\mathbf{1}^{\delta_v}_E\),
+    onde \(E\) é o conjunto de arestas do grafo.
+  </p>
+
+  <div class="lemma">
+    <span class="label">Lema 1.1.</span>
+    <em>Se \(G\) é um grafo, então
+    \[
+      \sum_{v \in V(G)} \deg(v) \;=\; 2\,|E(G)|.
+    \]</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Seja \(G\) um grafo. Primeiro observe que
+    \[
+      \deg(v) = \sum_{e \in E} \mathbf{1}^{\delta_v}(e)
+    \]
+    para cada \(v \in V\). Além disso,
+    \[
+      \sum_{v \in V} \mathbf{1}^{\delta_v}(e) = 2
+    \]
+    para cada \(e \in E\), pois toda aresta tem exatamente dois extremos. Portanto,
+    \[
+      \sum_{v \in V} \deg(v)
+      \;=\; \sum_{v \in V} \sum_{e \in E} \mathbf{1}^{\delta_v}(e)
+      \;=\; \sum_{e \in E} \sum_{v \in V} \mathbf{1}^{\delta_v}(e)
+      \;=\; \sum_{e \in E} 2
+      \;=\; 2|E|. \qquad\square
+    \]
+  </div>
+
+  <div class="corollary">
+    <span class="label">Corolário 1.2.</span>
+    <em>Todo grafo tem um número par de vértices de grau ímpar.</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Seja \(G\) um grafo. Seja \(P\) o conjunto dos vértices de grau par de \(G\) e \(I\) o
+    conjunto dos vértices de grau ímpar de \(G\). Claramente,
+    \[
+      \sum_{v \in V} \deg(v) \;=\; \sum_{v \in P} \deg(v) + \sum_{v \in I} \deg(v).
+    \]
+    Pelo Lema 1.1, a soma \(\sum_{v \in V} \deg(v)\) é par. Também \(\sum_{v \in P} \deg(v)\)
+    é par, por ser uma soma de inteiros pares. Segue que \(\sum_{v \in I} \deg(v)\) é par. Mas
+    essa última soma é uma soma de \(|I|\) inteiros ímpares. Portanto \(|I|\) é par.
+    \(\square\)
+  </div>
+
+  <!-- ───────────────────────────────── -->
+  <h2 id="subgrafos">1.3 Subgrafos e supergrafos</h2>
+
+  <p>
+    Um grafo \(H\) é um <em>subgrafo</em> (subgraph) de um grafo \(G\) se
+    \[
+      V(H) \subseteq V(G) \quad\text{e}\quad E(H) \subseteq E(G),
+    \]
+    e, nesse caso, escrevemos \(H \subseteq G\) e também dizemos que \(G\) é um
+    <em>supergrafo</em> (supergraph) de \(H\).
+  </p>
+  <p>
+    Um subgrafo \(H\) de \(G\) é chamado de <em>gerador</em> (spanning) se \(V(H) = V(G)\).
+    Assim, um <em>subgrafo gerador</em> de \(G\) é obtido mantendo todos os vértices de \(G\)
+    e selecionando algumas de suas arestas.
+  </p>
+  <p>
+    Seja \(\emptyset \neq X \subseteq V(G)\). O <em>subgrafo de \(G\) induzido por vértices</em>
+    em \(X\), ou simplesmente <em>induzido por \(X\)</em> (induced subgraph), denotado por
+    \(G[X]\), é o grafo cujo conjunto de vértices é \(X\) e cujo conjunto de arestas é
+    \[
+      E(G[X]) \,:=\, \{uv \in E(G) \mid u, v \in X\}.
+    \]
+    Em outras palavras, \(G[X]\) é obtido de \(G\) mantendo os vértices em \(X\) e todas as
+    arestas de \(G\) cujos dois extremos pertencem a \(X\).
+  </p>
+  <p>
+    Se \(X \subseteq V(G)\) e \(V(G) \setminus X \neq \emptyset\), escrevemos \(G - X\) para
+    o subgrafo induzido \(G[V(G) \setminus X]\). Dizemos que \(G - X\) é obtido de \(G\) pela
+    <em>remoção dos vértices</em> em \(X\). Em particular, se \(u \in V(G)\) e
+    \(V(G) \setminus \{u\} \neq \emptyset\), escrevemos \(G - u\) em vez de \(G - \{u\}\).
+    Se \(\emptyset \neq F \subseteq E(G)\), pode-se também considerar o subgrafo cujo conjunto
+    de arestas é \(F\) e cujo conjunto de vértices é o conjunto de todos os extremos das arestas
+    em \(F\), isto é, o conjunto \(\bigcup F\).<sup id="fn-ref-3"><a href="#fn3">3</a></sup>
+    Esse grafo é chamado de <em>subgrafo de \(G\) induzido por arestas</em> em \(F\)
+    (edge-induced subgraph), e é denotado por \(G[F]\).
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig1-4.png"
+         alt="Diferentes formas de obter subgrafos a partir de um grafo G.">
+    <figcaption>
+      Figura 1.4: Diferentes formas de obter <em>subgrafos</em> a partir de um grafo \(G\).
+      Um subgrafo pode manter apenas alguns vértices e algumas arestas cujos extremos estão
+      no conjunto mantido. Um subgrafo gerador mantém todos os vértices. O subgrafo induzido
+      \(G[X]\) mantém todas as arestas de \(G\) com ambos os extremos em \(X\). O grafo
+      \(G - X\) é obtido removendo os vértices em \(X\) e todas as arestas incidentes a eles.
+      Por fim, \(G[F]\) é o subgrafo gerado pelo conjunto de arestas \(F\); seus vértices são
+      os extremos das arestas em \(F\).
+    </figcaption>
+  </figure>
+
+  <p>
+    Seja \(G\) um grafo. Se \(F\) é um conjunto de subconjuntos de dois elementos de \(V(G)\),
+    definimos
+    \[
+      G + F \,:=\, (V(G),\; E(G) \cup F).
+    \]
+    Assim \(G + F\) é o grafo obtido de \(G\) adicionando as arestas em \(F\), de modo que
+    \(G + F\) é um supergrafo de \(G\). Em particular, se \(e\) é um subconjunto de dois
+    elementos de \(V(G)\), escrevemos \(G + e\) em vez de \(G + \{e\}\).
+  </p>
+  <p>
+    De modo análogo, se \(F \subseteq E(G)\), definimos
+    \[
+      G - F \,:=\, (V(G),\; E(G) \setminus F),
+    \]
+    e assim \(G - F\) é um subgrafo de \(G\). Se \(e \in E(G)\), escrevemos \(G - e\) em vez
+    de \(G - \{e\}\). Também combinaremos essas operações. Por exemplo, se \(e\) é um
+    subconjunto de dois elementos de \(V(G)\) e \(f \in E(G)\), então \(G - f + e\) significa
+    \((G - f) + e\), isto é, o grafo \((V(G),\,(E(G) \setminus \{f\}) \cup \{e\})\).
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig1-5.png"
+         alt="Adição e remoção de arestas.">
+    <figcaption>
+      Figura 1.5: Adição e remoção de arestas. Em \(G + F\), as arestas azuis são adicionadas
+      ao grafo. Em \(G - F\), as arestas vermelhas tracejadas são removidas. Em \(G - f + e\),
+      primeiro remove-se a aresta \(f\) e em seguida adiciona-se a aresta \(e\).
+    </figcaption>
+  </figure>
+
+  <!-- ───────────────────────────────── -->
+  <h2 id="passeios">1.4 Passeios, caminhos e circuitos</h2>
+
+  <p>
+    Seja \(G\) um grafo. Para cada \(k \in \mathbb{N}\), uma sequência<sup
+    id="fn-ref-4"><a href="#fn4">4</a></sup>
+    \[
+      W \,:=\, \langle v_i \mid i \in [0:k] \rangle
+    \]
+    de vértices de \(G\) é um <em>passeio</em> (walk) de \((v_0, v_k)\) em \(G\), ou
+    simplesmente um passeio de \(G\), se
+    \[
+      v_{i-1}\,v_i \in E(G)
+    \]
+    para todo \(i \in [1:k]\). O número \(k\) é chamado de <em>comprimento</em> (length) de
+    \(W\), também denotado por \(\|W\|\). Se \(v_0 = v_k\), dizemos que \(W\) é
+    <em>fechado</em>. O conjunto de arestas de \(W\), denotado por \(E(W)\), é o conjunto
+    \(\{v_i v_{i+1} \mid i \in [0:k)\}\). De modo análogo, o conjunto de vértices de \(W\),
+    denotado por \(V(W)\), é o conjunto \(\{v_i \mid i \in [0:k]\}\). Dizemos que \(W\)
+    <em>usa</em> uma aresta \(e \in E(G)\) se \(e \in E(W)\).
+  </p>
+  <p>
+    Um passeio \(\langle v_i \mid i \in [0:k] \rangle\) é um <em>caminho</em> (path) se seus
+    vértices são dois a dois distintos, isto é, se \(v_i \neq v_j\) para todos
+    \(i, j \in [0:k]\) com \(i \neq j\).
+  </p>
+  <p>
+    Um <em>circuito</em> (circuit) em \(G\) é um passeio
+    \(\langle v_i \mid i \in [0:k] \rangle\) de comprimento \(k \geq 3\) tal que
+    \(v_0 = v_k\) e \(\langle v_i \mid i \in [0:k) \rangle\) é um caminho.
+  </p>
+
+  <div class="proposition">
+    <span class="label">Proposição 1.3.</span>
+    <em>Seja \(G\) um grafo e \(x, y \in V(G)\). Existe um passeio de \((x,y)\) em \(G\) se e
+    somente se existe um caminho de \((x,y)\) em \(G\).</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Como todo caminho é um passeio, resta provar que, se existe um passeio de \((x,y)\) em
+    \(G\), então existe um caminho de \((x,y)\) em \(G\).
+    <p>Provamos isso por indução no comprimento do passeio. Seja
+    \(W := \langle v_0, \ldots, v_k \rangle\) um passeio de \((x,y)\) em \(G\), com
+    \(v_0 = x\) e \(v_k = y\). Se \(W\) é um caminho, não há nada a provar. Suponha então
+    que \(W\) não é um caminho. Logo, existem índices \(i, j \in [0:k]\), com \(i < j\), tais
+    que \(v_i = v_j\). Considere a sequência
+    \[
+      W' \,:=\, \langle v_0, \ldots, v_i,\; v_{j+1}, \ldots, v_k \rangle.
+    \]
+    Essa sequência ainda é um passeio de \((x,y)\) em \(G\). Além disso, \(W'\) tem
+    comprimento estritamente menor que o comprimento de \(W\). Pela hipótese de indução,
+    existe um caminho de \((x,y)\) em \(G\), como requerido. \(\square\)
+    </p>
+  </div>
+
+  <figure>
+    <img src="assets/figures/fig1-6.png"
+         alt="Um passeio, um caminho e um circuito em um grafo.">
+    <figcaption>
+      Figura 1.6: Um passeio, um caminho e um circuito em um grafo. Num passeio, os vértices
+      podem se repetir; num caminho, todos os vértices são dois a dois distintos; num circuito,
+      o primeiro e o último vértice coincidem e os demais são dois a dois distintos.
+    </figcaption>
+  </figure>
+
+  <h3 id="componentes">1.4.1 Componentes conexas</h3>
+
+  <p>
+    Seja \(G\) um grafo e escreva \(V := V(G)\). Definimos uma relação binária em \(V\),
+    denotada por \(\sim_G\) e chamada de <em>alcançabilidade</em> (reachability), como se segue:
+    para \(x, y \in V\), definimos
+    \[
+      x \sim_G y
+    \]
+    se \(G\) contém um passeio de \((x,y)\).
+  </p>
+  <p>
+    É simples verificar que, para todos \(x, y, z \in V\), as seguintes propriedades valem:
+  </p>
+  <ol>
+    <li>\(x \sim_G x\);</li>
+    <li>se \(x \sim_G y\), então \(y \sim_G x\);</li>
+    <li>se \(x \sim_G y\) e \(y \sim_G z\), então \(x \sim_G z\).</li>
+  </ol>
+  <p>
+    De fato, (i) decorre do passeio \(\langle x \rangle\). Para (ii), basta reverter um passeio
+    de \((x,y)\). Para (iii), basta concatenar um passeio de \((x,y)\) com um passeio de
+    \((y,z)\). Portanto, \(\sim_G\) é uma relação de equivalência em \(V\).
+  </p>
+  <p>
+    As classes de equivalência de \(\sim_G\) são chamadas de <em>componentes conexas</em>
+    (connected components) de \(G\). Assim, para cada \(x \in V\), a componente conexa de
+    \(G\) que contém \(x\) é o conjunto
+    \[
+      [x]_G \,:=\, \{y \in V \mid x \sim_G y\}.
+    \]
+    Um grafo \(G\) é <em>conexo</em> (connected) se tem exatamente uma componente conexa.
+    Equivalentemente, \(G\) é conexo se, para todo \(x, y \in V(G)\), existe um passeio de
+    \((x,y)\) em \(G\).
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig1-7.png"
+         alt="As componentes conexas de um grafo.">
+    <figcaption>
+      Figura 1.7: As componentes conexas de um grafo. Dois vértices pertencem à mesma
+      componente precisamente quando existe um passeio entre eles. Assim, as componentes são
+      as classes de equivalência da relação de alcançabilidade \(\sim_G\).
+    </figcaption>
+  </figure>
+
+  <!-- ───────────────────────────────── -->
+  <h2 id="aciclicos">1.5 Grafos acíclicos</h2>
+
+  <p>
+    Um grafo é <em>acíclico</em> (acyclic) se não contém nenhum circuito. Uma propriedade
+    básica e intuitiva dos grafos acíclicos é enunciada a seguir.
+  </p>
+
+  <div class="lemma">
+    <span class="label">Lema 1.4.</span>
+    <em>Se um grafo \(G\) é acíclico, então existe no máximo um caminho ligando quaisquer
+    dois vértices distintos de \(G\).</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Provamos a contrapositiva. Seja \(G\) um grafo e suponha que existem dois caminhos
+    distintos ligando algum par de vértices distintos de \(G\). Mostraremos que \(G\) possui
+    um circuito.<sup id="fn-ref-5"><a href="#fn5">5</a></sup> Entre todas essas escolhas, sejam
+    \(x, y \in V(G)\) e dois caminhos distintos de \((x,y)\)
+    \[
+      P_1 := \langle u_0, u_1, \ldots, u_k \rangle \quad\text{e}\quad
+      P_2 := \langle v_0, v_1, \ldots, v_\ell \rangle,
+    \]
+    com \(u_0 = v_0 = x\) e \(u_k = v_\ell = y\), de tal forma que \(k + \ell\) seja tão
+    pequeno quanto possível.
+    <p>Afirmamos que \(V(P_1) \cap V(P_2) = \{x, y\}\). Suponha que não. Então existem
+    \(i \in [1:k)\) e \(j \in [1:\ell)\) tais que \(u_i = v_j\). Agora, ou os caminhos
+    \(\langle u_0, \ldots, u_i \rangle\) e \(\langle v_0, \ldots, v_j \rangle\) são distintos,
+    ou os caminhos \(\langle u_i, \ldots, u_k \rangle\) e \(\langle v_j, \ldots, v_\ell \rangle\)
+    são distintos. De fato, se ambos os pares de caminhos fossem iguais, então \(P_1 = P_2\),
+    contrariando nossa escolha. No primeiro caso, obtemos dois caminhos distintos de \((x, u_i)\)
+    com comprimento total \(i + j < k + \ell\). No segundo caso, obtemos dois caminhos distintos
+    de \((u_i, y)\) com comprimento total \((k-i)+(\ell-j) < k + \ell\). Nos dois casos,
+    contradizemos a escolha de \(x, y, P_1, P_2\). Portanto \(V(P_1) \cap V(P_2) = \{x, y\}\).
+    </p>
+    <p>Consequentemente,
+    \[
+      \langle u_0, u_1, \ldots, u_k, v_{\ell-1}, v_{\ell-2}, \ldots, v_0 \rangle
+    \]
+    é um circuito de \(G\). Portanto \(G\) não é acíclico. \(\square\)
+    </p>
+  </div>
+
+  <figure>
+    <img src="assets/figures/fig1-8.png"
+         alt="Um grafo acíclico e um grafo que não é acíclico.">
+    <figcaption>
+      Figura 1.8: Um grafo acíclico e um grafo que não é acíclico. O grafo acíclico à esquerda
+      tem mais de uma componente conexa; o grafo à direita contém o circuito
+      \(\langle p, q, r, s, p \rangle\).
+    </figcaption>
+  </figure>
+
+  <div class="lemma">
+    <span class="label">Lema 1.5.</span>
+    <em>Se \(G\) é um grafo acíclico e \(|E(G)| \geq 1\), então existe \(u \in V(G)\) tal
+    que \(\deg(u) = 1\).</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Suponha que \(G\) é um grafo acíclico com \(|E(G)| \geq 1\). Seja
+    \(P := \langle u_0, \ldots, u_k \rangle\) um caminho de comprimento máximo.<sup
+    id="fn-ref-6"><a href="#fn6">6</a></sup> Como \(|E(G)| \geq 1\), existe uma aresta
+    \(uv \in E(G)\), e portanto \(\langle u, v \rangle\) é um caminho de comprimento 1. Logo
+    \(k \geq 1\). Afirmamos que \(\deg(u_0) = 1\).
+    <p>Como \(k \geq 1\), o vértice \(u_0\) tem pelo menos um vizinho, a saber \(u_1\). Suponha
+    que \(\deg(u_0) \neq 1\). Então \(u_0\) tem um vizinho \(v\) distinto de \(u_1\). Pela
+    maximalidade de \(P\), existe \(i \in [0:k]\) tal que \(v = u_i\); do contrário,
+    \(\langle v, u_0, \ldots, u_k \rangle\) seria um caminho mais longo que \(P\). Como
+    \(v \neq u_1\) e \(v\) é vizinho de \(u_0\), temos \(i \in [2:k]\). Mas então
+    \(\langle u_0, \ldots, u_i, u_0 \rangle\) é um circuito de \(G\), contradizendo o fato de
+    \(G\) ser acíclico. Portanto \(\deg(u_0) = 1\). \(\square\)
+    </p>
+  </div>
+
+  <figure>
+    <img src="assets/figures/fig1-9.png"
+         alt="Por que um extremo de um caminho de comprimento máximo num grafo acíclico tem grau 1.">
+    <figcaption>
+      Figura 1.9: Por que um extremo de um caminho de comprimento máximo num grafo acíclico
+      tem grau 1. Qualquer vizinho de \(u_0\) distinto de \(u_1\) ou estende o caminho (proibido
+      pela maximalidade) ou cria um circuito (proibido por \(G\) ser acíclico).
+    </figcaption>
+  </figure>
+
+  <!-- ───────────────────────────────── -->
+  <h2 id="arvores">1.6 Árvores</h2>
+
+  <p>
+    Um grafo é uma <em>árvore</em> (tree) se é conexo e acíclico. Assim, se \(T\) é uma
+    árvore, então para todo \(x, y \in V(T)\) existe um único caminho de \((x,y)\) em \(T\).
+    De fato, a existência decorre do fato de \(T\) ser conexo, e a unicidade decorre do Lema 1.4.
+    Isso justifica a seguinte notação: se \(T\) é uma árvore e \(x, y \in V(T)\), escrevemos
+    \(T(x,y)\) para denotar o único caminho de \((x,y)\) em \(T\).
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig1-10.png"
+         alt="Uma árvore, isto é, um grafo conexo e acíclico.">
+    <figcaption>
+      Figura 1.10: Uma árvore, isto é, um grafo conexo e acíclico.
+    </figcaption>
+  </figure>
+
+  <p>O próximo lema será útil para derivar algumas propriedades elementares das árvores.</p>
+
+  <div class="lemma">
+    <span class="label">Lema 1.6.</span>
+    <em>Se \(G\) é um grafo conexo e \(u\) é um vértice de \(G\) de grau 1, então \(G - u\)
+    também é conexo.</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Suponha que \(G\) é conexo e que \(u\) é um vértice de grau 1. Seja \(G' := G - u\).
+    Mostraremos que \(G'\) é conexo.
+    <p>Sejam \(x, y \in V(G')\). Como \(G\) é conexo, existe um caminho \(P\) de \((x,y)\) em
+    \(G\). Como \(x, y \in V(G')\), o vértice \(u\) não é um extremo de \(P\). Além disso,
+    \(u\) não pode ser um vértice interno de \(P\), porque todo vértice interno de \(P\) tem
+    grau pelo menos 2 em \(G\), enquanto \(u\) tem grau 1. Logo \(u\) não pertence a \(P\).
+    Portanto \(P\) é um caminho de \((x,y)\) em \(G'\), e logo \(G'\) é conexo. \(\square\)
+    </p>
+  </div>
+
+  <div class="theorem">
+    <span class="label">Teorema 1.7.</span>
+    <em>Se \(T\) é uma árvore, então \(|E(T)| = |V(T)| - 1\).</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Provamos o teorema por indução em \(|V(T)|\). Seja \(T\) uma árvore. Se \(|V(T)| = 1\),
+    então \(E(T) = \emptyset\), e o resultado segue.
+    <p>Suponha que \(|V(T)| \geq 2\). Pelo Lema 1.5, \(T\) tem um vértice \(u\) de grau 1.
+    Considere o grafo \(T' := T - u\). É claro que \(T'\) é acíclico, pois um circuito em
+    \(T'\) seria um circuito em \(T\). Além disso, pelo Lema 1.6, \(T'\) é conexo. Logo \(T'\)
+    é uma árvore. Pela hipótese de indução, \(|E(T')| = |V(T')| - 1\). Como \(u\) tem grau 1,
+    remover \(u\) remove exatamente uma aresta. Portanto \(|E(T)| = |E(T')| + 1\) e
+    \(|V(T)| = |V(T')| + 1\). Logo
+    \[
+      |E(T)| = |E(T')| + 1 = \bigl(|V(T')| - 1\bigr) + 1 = |V(T')| = |V(T)| - 1. \quad\square
+    \]
+    </p>
+  </div>
+
+  <div class="theorem">
+    <span class="label">Teorema 1.8.</span>
+    <em>Se \(T\) é um grafo acíclico e \(|E(T)| = |V(T)| - 1\), então \(T\) é uma árvore.</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Provamos o teorema por indução em \(|V(T)|\). Seja \(T\) um grafo acíclico tal que
+    \(|E(T)| = |V(T)| - 1\). Se \(|V(T)| = 1\), então \(T\) é conexo e acíclico e, portanto,
+    é uma árvore.
+    <p>Suponha que \(|V(T)| \geq 2\). Então \(|E(T)| = |V(T)| - 1 \geq 1\). Pelo Lema 1.5,
+    \(T\) tem um vértice \(u\) com \(\deg(u) = 1\). Seja \(T' := T - u\). Como \(u\) tem grau
+    1, temos \(|E(T')| = |E(T)| - 1\) e \(|V(T')| = |V(T)| - 1\). Logo
+    \(|E(T')| = |V(T')| - 1\). Também, \(T'\) é acíclico, pois um circuito em \(T'\) seria um
+    circuito em \(T\). Pela hipótese de indução, \(T'\) é uma árvore. Resta mostrar que \(T\)
+    é conexo.
+    </p>
+    <p>Sejam \(x, y \in V(T)\). Se \(x = y\), não há nada a provar. Suponha que \(x \neq y\).
+    Se \(x, y \in V(T')\), então, como \(T'\) é conexo, existe um caminho de \((x,y)\) em
+    \(T'\), que também é um caminho em \(T\). Suponha, por fim, que um de \(x, y\) seja igual
+    a \(u\), digamos \(y = u\). Seja \(v\) o único vizinho de \(u\) em \(T\). Como
+    \(x \neq y\), temos \(x \in V(T')\). Também \(v \in V(T')\). Como \(T'\) é conexo, existe
+    um caminho \(P'\) de \((x,v)\) em \(T'\). Acrescentando o vértice \(u\) a \(P'\), isto é,
+    formando o caminho \(P' \cdot \langle u \rangle\), obtemos um caminho de \((x,u)\) em \(T\).
+    Portanto existe um caminho de \((x,y)\) em \(T\). Logo \(T\) é conexo. Como \(T\) também é
+    acíclico, \(T\) é uma árvore. \(\square\)
+    </p>
+  </div>
+
+  <div class="theorem">
+    <span class="label">Teorema 1.9.</span>
+    <em>Se \(T\) é um grafo conexo e \(|E(T)| = |V(T)| - 1\), então \(T\) é uma árvore.</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    A demonstração é por indução em \(|V(T)|\). Seja \(T\) um grafo conexo tal que
+    \(|E(T)| = |V(T)| - 1\). Se \(|V(T)| = 1\), então \(E(T) = \emptyset\) e portanto \(T\)
+    é uma árvore.
+    <p>Suponha que \(|V(T)| \geq 2\). Escreva \(n := |V(T)|\) e \(m := |E(T)|\). Pelo Lema 1.1,
+    \[
+      \sum_{v \in V(T)} \deg(v) = 2m = 2n - 2.
+    \]
+    Logo existe \(u \in V(T)\) com \(\deg(u) \leq 1\). De fato, se \(\deg(v) \geq 2\) para todo
+    \(v \in V(T)\), então \(\sum_{v \in V(T)} \deg(v) \geq 2n\), o que é impossível. Como \(T\)
+    é conexo e \(n \geq 2\), nenhum vértice de \(T\) tem grau 0. Portanto \(\deg(u) = 1\).
+    </p>
+    <p>Seja \(T' := T - u\). Pelo Lema 1.6, o grafo \(T'\) é conexo. Além disso, como \(u\)
+    tem grau 1, remover \(u\) remove exatamente uma aresta. Assim,
+    \[
+      |E(T')| = |E(T)| - 1 = (|V(T)| - 1) - 1 = |V(T)| - 2 = |V(T')| - 1.
+    \]
+    Pela hipótese de indução, \(T'\) é uma árvore.
+    </p>
+    <p>O grafo \(T\) é conexo por hipótese. Resta mostrar que \(T\) é acíclico. Como \(T'\) é
+    uma árvore, \(T'\) não tem circuito. Se \(T\) tivesse um circuito \(C\), então \(u\) não
+    poderia ser vértice de \(C\), porque todo vértice de um circuito tem grau pelo menos 2 em
+    \(T\), enquanto \(u\) tem grau 1. Logo \(C\) seria um circuito em \(T'\), uma contradição.
+    Portanto \(T\) é acíclico e, consequentemente, \(T\) é uma árvore. \(\square\)
+    </p>
+  </div>
+
+  <!-- ───────────────────────────────── -->
+  <h2 id="cortes-grafo">1.7 Cortes de um grafo</h2>
+
+  <p>
+    Seja \(G\) um grafo e \(X \subseteq V(G)\). Escrevemos \(\delta_G(X)\), ou simplesmente
+    \(\delta(X)\) quando o grafo está claro pelo contexto, para denotar o conjunto de arestas
+    de \(G\) com um extremo em \(X\) e o outro em \(V(G) \setminus X\), isto é,
+    \[
+      \delta_G(X) \,:=\,
+      \bigl\{\, e \in E(G) \;\big|\; e \cap X \neq \emptyset
+      \text{ e } e \cap (V(G) \setminus X) \neq \emptyset \,\bigr\}.
+    \]
+    Um <em>corte</em> (cut) de \(G\) é um subconjunto \(K\) de \(E(G)\) para o qual existe um
+    subconjunto \(X\) de \(V(G)\) tal que \(K = \delta_G(X)\).
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig1-11.png"
+         alt="Um corte de um grafo: arestas com um extremo em X e o outro em V(G)\X.">
+    <figcaption>
+      Figura 1.11: Um corte de um grafo. As arestas destacadas são precisamente as arestas com
+      um extremo em \(X\) e o outro em \(V(G) \setminus X\).
+    </figcaption>
+  </figure>
+
+  <div class="theorem">
+    <span class="label">Teorema 1.10.</span>
+    <em>Um grafo \(G\) é conexo se e somente se \(\delta(X) \neq \emptyset\) para todo
+    subconjunto próprio não vazio \(X\) de \(V(G)\).</em>
+  </div>
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Suponha primeiro que \(G\) é conexo. Seja \(X\) um subconjunto próprio não vazio de
+    \(V(G)\). Escolha \(x \in X\) e \(y \in V(G) \setminus X\). Como \(G\) é conexo, existe um
+    caminho \(\langle u_0, \ldots, u_k \rangle\) de \((x,y)\) em \(G\). Ora, \(u_0 = x \in X\)
+    e \(u_k = y \in V(G) \setminus X\). Logo existe \(i \in [0:k)\) tal que \(u_i \in X\) e
+    \(u_{i+1} \in V(G) \setminus X\). Pela definição de \(\delta(X)\), temos
+    \(u_i u_{i+1} \in \delta(X)\). Portanto \(\delta(X) \neq \emptyset\).
+    <p>Reciprocamente, suponha que \(\delta(X) \neq \emptyset\) para todo subconjunto próprio
+    não vazio \(X\) de \(V(G)\). Sejam \(x, y \in V(G)\) e seja \(X := [x]_G\). Afirmamos que
+    \(\delta(X) = \emptyset\). De fato, suponha que \(u \in X\) e que \(v\) é um vizinho de
+    \(u\) em \(G\). Como \(u \in X\), existe um passeio \(P\) de \((x,u)\) em \(G\). Ora,
+    \(P \cdot \langle v \rangle\) é um passeio de \((x,v)\) em \(G\). Logo \(v \in X\).
+    Portanto \(\delta(X) = \emptyset\).
+    </p>
+    <p>Como \(x \in X\), o conjunto \(X\) é não vazio. Pela hipótese, \(X\) não pode ser um
+    subconjunto próprio de \(V(G)\). Logo \(X = V(G)\). Em particular, \(y \in X\). Portanto
+    existe um caminho de \((x,y)\) em \(G\). Logo \(G\) é conexo. \(\square\)
+    </p>
+  </div>
+
+  <!-- ─── Notas de rodapé ─────────────────── -->
+  <div class="footnotes">
+    <p id="fn1"><sup>1</sup> Com essa convenção, grafos têm pelo menos um vértice. Isso evita
+    alguns casos degenerados que, do contrário, teriam de ser excluídos repetidamente.
+    <a href="#fn-ref-1">↩</a></p>
+
+    <p id="fn2"><sup>2</sup> Para um conjunto \(A\), \(2^A\) é o conjunto de todos os
+    subconjuntos de \(A\). <a href="#fn-ref-2">↩</a></p>
+
+    <p id="fn3"><sup>3</sup> Se \(F\) é um conjunto cujos elementos também são conjuntos, então
+    \(\bigcup F\) é o conjunto de todos os \(x\) para os quais existe \(f \in F\) com
+    \(x \in f\). <a href="#fn-ref-3">↩</a></p>
+
+    <p id="fn4"><sup>4</sup> Seja \(n \in \mathbb{N}\) e \(\Sigma\) um conjunto. Uma
+    <em>sequência</em> sobre \(\Sigma\) é uma função \(w : [0:n) \to \Sigma\). Ela é vazia se
+    \(n = 0\), caso em que a denotamos por \(\epsilon\). O conjunto de sequências sobre
+    \(\Sigma\) é \(\Sigma^*\); o de sequências não vazias é \(\Sigma^+\). Se
+    \(u : [0:m) \to \Sigma\) e \(v : [0:n) \to \Sigma\), a <em>concatenação</em> \(u \cdot v\)
+    é a sequência \(uv : [0:m+n) \to \Sigma\) com \((uv)_i = u_i\) para \(i \in [0:m)\) e
+    \((uv)_i = v_{i-m}\) para \(i \in [m:m+n)\). Assim, um passeio \(W\) em \(G\) é um
+    elemento de \(V(G)^+\). <a href="#fn-ref-4">↩</a></p>
+
+    <p id="fn5"><sup>5</sup> Isso é muito fácil de ver e intuitivo. No entanto, exige algum
+    esforço para explicitar os detalhes de uma demonstração rigorosa.
+    <a href="#fn-ref-5">↩</a></p>
+
+    <p id="fn6"><sup>6</sup> Tal caminho existe. De fato, considere o conjunto
+    \(L := \{\|P\| \mid P \text{ é um caminho de } G\}\). O conjunto \(L\) é não vazio, pois
+    \(\langle u \rangle\) é um caminho para todo \(u \in V(G)\). Além disso, \(L\) é limitado
+    superiormente por \(|V(G)| - 1\), porque todo caminho tem comprimento no máximo
+    \(|V(G)| - 1\). Portanto \(L\) tem um máximo \(k\) e existe um caminho \(P\) de \(G\) com
+    \(\|P\| = k\). <a href="#fn-ref-6">↩</a></p>
+  </div>
+
+  <div class="chapter-nav">
+    <a href="index.html">&larr; Capa</a>
+    <a href="capitulo2.html">Capítulo 2 &rarr;</a>
+  </div>
+
+</div>
+</body>
+</html>
