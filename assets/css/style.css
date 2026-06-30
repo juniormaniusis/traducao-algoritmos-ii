@@ -160,6 +160,67 @@ figcaption strong { color: #111; }
 .chapter-nav a { color: var(--link); text-decoration: none; }
 .chapter-nav a:hover { text-decoration: underline; }
 
+/* Algorithm pseudocode */
+.algorithm {
+  background: #f0ede8;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+.algorithm .alg-title {
+  font-weight: bold;
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+  white-space: normal;
+}
+.algorithm .alg-meta {
+  font-style: italic;
+  color: #666;
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  white-space: normal;
+  display: block;
+}
+
+/* Exercise boxes */
+.exercise {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--link);
+  padding: 0.75rem 1rem;
+  margin: 1.5rem 0;
+  background: #f9f8f5;
+}
+.exercise .label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--link);
+}
+
+pre, code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+pre {
+  background: #f0ede8;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1rem;
+  overflow-x: auto;
+  line-height: 1.5;
+  margin: 1.5rem 0;
+}
+
 @media (max-width: 600px) {
   html { font-size: 16px; }
   h1.chapter-title { font-size: 1.6rem; }

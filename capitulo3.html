@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capítulo 3 — Árvores geradoras mínimas | Análise de Algoritmos II</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script>
+    MathJax = {
+      tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <style>
+    /* Algorithm boxes */
+    .algorithm {
+      border: 1.5px solid #888;
+      border-radius: 3px;
+      margin: 1.5rem 0;
+      font-size: 0.92rem;
+    }
+    .algorithm-header {
+      background: #e8e8e8;
+      border-bottom: 1.5px solid #888;
+      padding: 0.4rem 0.85rem;
+      font-weight: bold;
+      font-family: var(--font-serif);
+      letter-spacing: 0.01em;
+    }
+    .algorithm-header .alg-name {
+      font-variant: small-caps;
+    }
+    .algorithm-body {
+      padding: 0.6rem 0.85rem;
+      font-family: var(--font-serif);
+    }
+    .algorithm-body .require,
+    .algorithm-body .ensure {
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+    }
+    .algorithm-body .require strong,
+    .algorithm-body .ensure strong {
+      font-weight: bold;
+    }
+    .alg-lines {
+      list-style: none;
+      padding: 0;
+      margin: 0.4rem 0 0;
+      counter-reset: alg-line;
+    }
+    .alg-lines li {
+      counter-increment: alg-line;
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 0.1rem;
+      line-height: 1.55;
+    }
+    .alg-lines li::before {
+      content: counter(alg-line) ":";
+      min-width: 2rem;
+      color: #666;
+      font-size: 0.82rem;
+      flex-shrink: 0;
+    }
+    .alg-lines li .indent1 { padding-left: 1.5rem; }
+    .alg-lines li .indent2 { padding-left: 3rem; }
+    .alg-lines li .indent3 { padding-left: 4.5rem; }
+    .alg-kw { font-weight: bold; }
+
+    /* Exercise boxes */
+    .exercise {
+      background: #eef0f8;
+      border: 1px solid #c5cae0;
+      border-radius: 3px;
+      padding: 0.85rem 1.1rem;
+      margin: 1.25rem 0;
+    }
+    .exercise .ex-label {
+      font-weight: bold;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    /* Proof end mark */
+    .qed-inline {
+      float: right;
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-top: 0.2rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <nav>
+    <a href="index.html">Capa</a>
+    <a href="capitulo1.html">Capítulo 1</a>
+    <a href="capitulo2.html">Capítulo 2</a>
+    <span class="current">Capítulo 3</span>
+  </nav>
+
+  <span class="chapter-label">Capítulo 3</span>
+  <h1 class="chapter-title">Árvores geradoras mínimas</h1>
+
+  <!-- ===== 3.1 Spanning trees ===== -->
+  <h2 id="arvores-geradoras">3.1 Árvores geradoras</h2>
+
+  <p>
+    Seja $G$ um grafo. Dizemos que um subgrafo gerador $T$ de $G$ é uma
+    <em>árvore geradora</em> (<em>spanning tree</em>) de $G$ se $T$ é uma árvore.
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig3-1.png"
+         alt="Um grafo conexo com circuitos (esquerda) e uma árvore geradora T (direita), com as arestas da árvore destacadas em azul.">
+    <figcaption>
+      <strong>Figura 3.1:</strong> Uma árvore geradora de um grafo. O grafo $T$ contém todos os
+      vértices de $G$, é conexo e não possui circuito.
+    </figcaption>
+  </figure>
+
+  <p>
+    Lembre-se de que um <em>corte</em> (<em>cut</em>) em um grafo $G$ é um subconjunto
+    $K \subseteq E(G)$ tal que $K = \delta(X)$ para algum subconjunto $X \subseteq V(G)$.
+    O próximo algoritmo descreve um procedimento não-determinístico que recebe um grafo $G$
+    e constrói um subconjunto $F$ de $E(G)$. A cada iteração, o algoritmo escolhe
+    não-deterministicamente um corte não-vazio $K$ disjunto de $F$, e em seguida escolhe
+    uma aresta $f \in K$ para ser adicionada a $F$. Mostraremos que esse algoritmo termina
+    após um número finito de passos e que, sempre que o grafo de entrada for conexo, o
+    conjunto de arestas retornado é o conjunto de arestas de uma árvore geradora de $G$.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 3.1 &nbsp; <span class="alg-name">CortaGuloso</span>$(G)$
+    </div>
+    <div class="algorithm-body">
+      <ol class="alg-lines">
+        <li><span>$F \leftarrow \emptyset$</span></li>
+        <li><span><span class="alg-kw">enquanto</span> existir um corte não-vazio $K$ disjunto de $F$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1">escolha $f \in K$</span></li>
+        <li><span class="indent1">$F \leftarrow F \cup \{f\}$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $F$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="proposition">
+    <span class="label">Proposição 3.1.</span>
+    <em>Seja $G$ um grafo. Então $(V(G), F)$ é acíclico no início de cada iteração do
+    Algoritmo <span style="font-variant:small-caps">CortaGuloso</span>$(G)$.</em>
+  </div>
+
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    No início do algoritmo, $F = \emptyset$, e portanto $(V(G), F)$ é acíclico.
+
+    <p>
+      Suponha agora que $(V(G), F)$ é acíclico no início de alguma iteração. Seja
+      $K$ um corte não-vazio de $G$ tal que $K \cap F = \emptyset$, e seja
+      $xy := f \in K$ a aresta selecionada pelo algoritmo. Mostraremos que
+      $(V(G), F \cup \{f\})$ é acíclico.
+    </p>
+
+    <p>
+      Suponha, por contradição, que $(V(G), F \cup \{f\})$ contém um circuito $C$. Como
+      $(V(G), F)$ é acíclico, o circuito $C$ deve conter a aresta $f$. Logo $(V(G), F)$
+      contém um $(x, y)$-caminho $\langle u_0, \ldots, u_k \rangle$. Seja $X \subseteq V(G)$
+      tal que $K = \delta_G(X)$. Renomeando $x$ e $y$ se necessário, podemos supor que
+      $x \in X$ e $y \in V(G) \setminus X$. Como $u_0 = x \in X$ e
+      $u_k = y \in V(G) \setminus X$, existe $i \in [0 : k)$ tal que $u_i \in X$ e
+      $u_{i+1} \in V(G) \setminus X$. Assim $u_i u_{i+1} \in \delta_G(X) = K$. Por outro
+      lado, como $\langle u_0, \ldots, u_k \rangle$ é um caminho em $(V(G), F)$, temos
+      $u_i u_{i+1} \in F$. Portanto $u_i u_{i+1} \in K \cap F$, contradizendo o fato de
+      que $K \cap F = \emptyset$.
+    </p>
+
+    <p>
+      Portanto $(V(G), F \cup \{f\})$ é acíclico. Assim o invariante é preservado em cada
+      iteração.
+      <span class="qed-inline">□</span>
+    </p>
+  </div>
+
+  <div class="lemma">
+    <span class="label">Lema 3.2.</span>
+    <em>Seja $G$ um grafo conexo. Se $F \subseteq E(G)$ é tal que $(V(G), F)$ é acíclico
+    e $|F| &lt; |V(G)| - 1$, então existe um corte não-vazio $K$ de $G$ tal que
+    $K \cap F = \emptyset$.</em>
+  </div>
+
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Suponha que $F \subseteq E(G)$ é tal que $H := (V(G), F)$ é acíclico e
+    $|F| &lt; |V(G)| - 1$. Se $H$ fosse uma árvore geradora de $G$, então pelo
+    Teorema 1.7 teríamos
+
+    <div class="math-display">
+      $$|F| = |E(H)| = |V(H)| - 1 = |V(G)| - 1,$$
+    </div>
+
+    contrariando a hipótese. Logo $H$ não é uma árvore geradora de $G$.
+
+    <p>
+      Como $H$ é acíclico, decorre que $H$ não é conexo. Portanto existem
+      vértices $x, y \in V(G)$ tais que $H$ não contém um $(x, y)$-caminho. Seja
+      $X := [x]_H$, isto é,
+    </p>
+
+    <div class="math-display">
+      $$X = \{z \in V(H) \mid \text{existe um } (x,z)\text{-caminho em } H\}.$$
+    </div>
+
+    <p>
+      Então $x \in X$ e $y \notin X$, donde $\emptyset \neq X \subsetneq V(G)$. Além disso,
+      $\delta_H(X) = \emptyset$, pela definição de $X$.
+    </p>
+
+    <p>
+      Como $G$ é conexo e $\emptyset \neq X \subsetneq V(G)$, temos, pelo Teorema 1.10,
+      que $\delta_G(X) \neq \emptyset$. Seja $K := \delta_G(X)$. Então $K$ é um corte
+      não-vazio de $G$. Além disso, como $\delta_H(X) = \emptyset$ e $E(H) = F$, nenhuma
+      aresta de $F$ tem uma extremidade em $X$ e a outra em $V(G) \setminus X$. Logo
+      $K \cap F = \emptyset$.
+      <span class="qed-inline">□</span>
+    </p>
+  </div>
+
+  <div class="corollary">
+    <span class="label">Corolário 3.3.</span>
+    <em>Para cada grafo conexo $G$, o Algoritmo 3.1 executa $|V(G)| - 1$ iterações e
+    retorna um conjunto $F \subseteq E(G)$ tal que $(V(G), F)$ é uma árvore geradora
+    de $G$.</em>
+  </div>
+
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Pelo invariante demonstrado acima, ao longo de toda a execução do algoritmo, o grafo
+    $(V(G), F)$ é acíclico. Além disso, $|F|$ aumenta de 1 a cada iteração.
+
+    <p>
+      Mostramos primeiro que o algoritmo não pode parar enquanto $|F| &lt; |V(G)| - 1$.
+      De fato, pelo Lema 3.2, se $|F| &lt; |V(G)| - 1$, existe um corte não-vazio $K$
+      de $G$ tal que $K \cap F = \emptyset$. Logo a condição do laço ainda é satisfeita.
+    </p>
+
+    <p>
+      Como $|F|$ aumenta de 1 a cada iteração, o algoritmo eventualmente alcança uma
+      iteração para a qual $|F| = |V(G)| - 1$. Nesse ponto, $H := (V(G), F)$ é acíclico
+      e $|F| = |V(G)| - 1$. Logo, pelo Teorema 1.8, $H$ é uma árvore. Como $V(H) = V(G)$,
+      $H$ é uma árvore geradora de $G$.
+    </p>
+
+    <p>
+      Resta mostrar que o algoritmo para nesse ponto. Seja $K$ um corte não-vazio de $G$.
+      Escolha $X \subseteq V(G)$ tal que $K = \delta_G(X)$. Como $K \neq \emptyset$, o
+      conjunto $X$ é um subconjunto próprio não-vazio de $V(G)$. Como $H$ é conexo, pelo
+      Teorema 1.10,
+    </p>
+
+    <div class="math-display">
+      $$\delta_H(X) = \delta_H(X) \cap F \neq \emptyset.$$
+    </div>
+
+    <p>
+      Mas $H$ é um subgrafo de $G$. Portanto
+    </p>
+
+    <div class="math-display">
+      $$\delta_H(X) \cap F \subseteq \delta_G(X) \cap F = K \cap F.$$
+    </div>
+
+    <p>
+      Assim $K \cap F \neq \emptyset$. Logo não existe corte não-vazio de $G$ disjunto
+      de $F$, e portanto o algoritmo para.
+    </p>
+
+    <p>
+      Assim o algoritmo executa $|V(G)| - 1$ iterações e retorna um conjunto
+      $F \subseteq E(G)$ tal que $(V(G), F)$ é uma árvore geradora de $G$.
+      <span class="qed-inline">□</span>
+    </p>
+  </div>
+
+  <div class="lemma">
+    <span class="label">Lema 3.4.</span>
+    <em>Seja $T$ uma árvore e escreva $V := V(T)$. Se $x, y \in V$ são vértices distintos,
+    $e := xy \notin E(T)$, e $f \in E(T(x, y))$, então $T - f + e$ é também uma árvore.</em>
+  </div>
+
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Suponha que $T$ é uma árvore, que $x$ e $y$ são vértices distintos de $T$, que
+    $e := xy \notin E(T)$, e que $f \in E(T(x, y))$. Escreva $T(x, y) = \langle z_0,
+    \ldots, z_\ell \rangle$, onde $z_0 = x$ e $z_\ell = y$. Seja $T' := T - f + e$.
+
+    <p>
+      Como $f$ é uma aresta de $T(x, y)$, existe $j \in [0 : \ell)$ tal que
+      $f = z_j z_{j+1}$. Considere agora a sequência
+      $\langle z_{j+1}, z_{j+2}, \ldots, z_\ell, z_0, z_1, \ldots, z_j \rangle$.
+      Essa é uma $(z_{j+1}, z_j)$-caminho em $T'$. De fato, todas as suas arestas,
+      exceto $z_\ell z_0 = xy = e$, são arestas de $T(x, y)$ distintas de $f$, e
+      $z_\ell z_0 = xy = e$. Assim $T'$ contém um caminho entre as duas extremidades
+      de $f$. Em particular, $z_j \sim_{T'} z_{j+1}$.
+    </p>
+
+    <p>
+      Observe que $|E(T')| = |E(T)| = |V(T)| - 1 = |V(T')| - 1$. Para completar a
+      demonstração de que $T'$ é uma árvore, pelo Teorema 1.9, basta mostrar que
+      $T'$ é conexo.
+    </p>
+
+    <p>
+      Sejam $u, v \in V(T')$. Como $T$ é conexo, existe um $(u, v)$-caminho
+    </p>
+
+    <div class="math-display">
+      $$P := \langle u_0, \ldots, u_k \rangle$$
+    </div>
+
+    <p>
+      em $T$, onde $u_0 = u$ e $u_k = v$. Se $f \notin E(P)$, então $P$ é também um
+      $(u, v)$-caminho em $T'$. Suponha então que $f \in E(P)$. Existe $i \in [0 : k)$
+      tal que $f = u_i u_{i+1}$. O segmento inicial $\langle u_0, \ldots, u_i \rangle$
+      é um caminho em $T'$, e portanto é um caminho em $T'$. Analogamente, o segmento
+      final $\langle u_{i+1}, \ldots, u_k \rangle$ é um caminho em $T'$. Além disso,
+      pela primeira parte da demonstração, as duas extremidades de $f$ são conectadas
+      por um caminho em $T'$. Portanto $u_0 \sim_{T'} u_i$, $u_i \sim_{T'} u_{i+1}$,
+      e $u_{i+1} \sim_{T'} u_k$. Pela transitividade da acessibilidade, segue que
+      $u \sim_{T'} v$.
+    </p>
+
+    <p>
+      Assim $T'$ é conexo e $|E(T')| = |V(T')| - 1$, e portanto, pelo Teorema 1.9,
+      $T'$ é uma árvore.
+      <span class="qed-inline">□</span>
+    </p>
+  </div>
+
+  <p>Passamos agora ao problema da árvore geradora mínima.</p>
+
+  <!-- ===== 3.2 The minimum spanning tree problem ===== -->
+  <h2 id="problema-agm">3.2 O problema da árvore geradora mínima</h2>
+
+  <p>
+    Seja $G$ um grafo e seja $c : E(G) \rightsquigarrow \mathbb{R}$ uma função. O par
+    $(G, c)$ é chamado de <em>grafo ponderado</em> (<em>weighted graph</em>), e $c(e)$
+    é chamado de <em>peso</em> (<em>weight</em>) da aresta $e$.
+  </p>
+
+  <p>
+    Para um subconjunto $F \subseteq E(G)$, definimos
+  </p>
+
+  <div class="math-display">
+    $$\tilde{c}(F) := \sum_{f \in F} c(f).$$
+  </div>
+
+  <p>
+    Se $H$ é um subgrafo de $G$, escrevemos também $\tilde{c}(H) := \tilde{c}(E(H))$.
+  </p>
+
+  <p>
+    Dado um grafo ponderado $(G, c)$, com $G$ conexo, o <em class="term">problema da
+    árvore geradora mínima</em> (<em>minimum spanning tree problem</em>) consiste em
+    encontrar uma árvore geradora $T$ de $G$ tal que
+  </p>
+
+  <div class="math-display">
+    $$\tilde{c}(T) \leq \tilde{c}(J)$$
+  </div>
+
+  <p>
+    para toda árvore geradora $J$ de $G$. Tal árvore geradora $T$ é chamada de
+    <em class="term">árvore geradora mínima</em> (<em>minimum spanning tree</em>)
+    de $(G, c)$.
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig3-2.png"
+         alt="Grafo ponderado (G, c) com pesos nas arestas (esquerda) e árvore geradora mínima T com peso total 12 destacada em azul (direita).">
+    <figcaption>
+      <strong>Figura 3.2:</strong> O problema da árvore geradora mínima. Dado um grafo
+      ponderado conexo $(G, c)$, o objetivo é encontrar uma árvore geradora $T$ de peso
+      total mínimo. As arestas destacadas à direita formam uma dessas árvores geradoras
+      mínimas.
+    </figcaption>
+  </figure>
+
+  <p>
+    O próximo teorema é o passo-chave na demonstração de que uma escolha gulosa é
+    suficiente para calcular uma árvore geradora mínima de um grafo ponderado conexo.
+    Lembre-se do Algoritmo 3.1, que seleciona não-deterministicamente dois objetos a
+    cada iteração: um corte não-vazio e uma aresta nele. Mantemos a escolha
+    não-determinística do corte. Porém, uma vez que o corte foi escolhido, selecionamos
+    uma aresta do corte com peso mínimo. Isso resulta na seguinte versão do algoritmo.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 3.2 &nbsp; <span class="alg-name">AGMGuloso</span>$(G, c)$
+    </div>
+    <div class="algorithm-body">
+      <ol class="alg-lines">
+        <li><span>$F \leftarrow \emptyset$</span></li>
+        <li><span><span class="alg-kw">enquanto</span> existir um corte não-vazio $K$ disjunto de $F$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1">escolha $e \in K$ tal que $c(e) = \min\{c(f) \mid f \in K\}$</span></li>
+        <li><span class="indent1">$F \leftarrow F \cup \{e\}$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $F$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    Seja $(G, c)$ um grafo ponderado. Dizemos que um subconjunto $F \subseteq E(G)$
+    é <em>bom</em> (<em>good</em>) se existe uma árvore geradora mínima $T$ de $(G, c)$
+    tal que $F \subseteq E(T)$.
+  </p>
+
+  <div class="theorem">
+    <span class="label">Teorema 3.5.</span>
+    <em>Seja $(G, c)$ um grafo ponderado. Se $F$ é bom e $K$ é um corte não-vazio de
+    $G$ com $K \cap F = \emptyset$, então $F \cup \{e\}$ também é bom, onde $e \in K$
+    é tal que</em>
+    <div class="math-display">
+      $$c(e) = \min\{c(f) \mid f \in K\}.$$
+    </div>
+  </div>
+
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Suponha que $F$ é bom e que $K$ é um corte não-vazio de $G$ com $K \cap F = \emptyset$.
+    Seja $e \in K$ tal que
+    <div class="math-display">
+      $$c(e) = \min\{c(f) \mid f \in K\}.$$
+    </div>
+
+    <p>
+      Como $F$ é bom, existe uma árvore geradora mínima $T$ de $(G, c)$ tal que
+      $F \subseteq E(T)$. Se $e \in E(T)$, então $F \cup \{e\} \subseteq E(T)$, e
+      portanto $F \cup \{e\}$ é bom.
+    </p>
+
+    <p>
+      Suponha então que $e \notin E(T)$. Seja $X \subseteq V(G)$ tal que $K = \delta(X)$.
+      Seja $x$ a extremidade de $e$ em $X$, e seja $y$ a extremidade de $e$ em
+      $V(G) \setminus X$. Como $T$ é conexo, existe um $(x, y)$-caminho
+    </p>
+
+    <div class="math-display">
+      $$\langle u_0, \ldots, u_k \rangle$$
+    </div>
+
+    <p>
+      em $T$. Como $u_0 = x \in X$ e $u_k = y \in V(G) \setminus X$, existe
+      $i \in [0 : k)$ tal que $u_i \in X$ e $u_{i+1} \in V(G) \setminus X$. Assim
+      $f := u_i u_{i+1} \in K$. Como $e$ tem peso mínimo dentre as arestas de $K$,
+      temos $c(e) \leq c(f)$. Considere $T' := T - f + e$. Pelo Lema 3.4, o grafo $T'$
+      é uma árvore. Como $V(T') = V(T) = V(G)$ e $E(T') \subseteq E(G)$, $T'$ é uma
+      árvore geradora de $G$. Além disso,
+    </p>
+
+    <div class="math-display">
+      $$\tilde{c}(T') = \tilde{c}(T) - c(f) + c(e) \leq \tilde{c}(T).$$
+    </div>
+
+    <p>
+      Como $T$ é uma árvore geradora mínima de $(G, c)$, $T'$ também é uma árvore
+      geradora mínima de $(G, c)$. Por fim, $f \notin F$, pois $f \in K$ e
+      $K \cap F = \emptyset$. Logo $F \subseteq E(T')$. Além disso, $e \in E(T')$.
+      Portanto $F \cup \{e\} \subseteq E(T')$. Assim $F \cup \{e\}$ é bom.
+      <span class="qed-inline">□</span>
+    </p>
+  </div>
+
+  <div class="theorem">
+    <span class="label">Teorema 3.6.</span>
+    <em>Seja $(G, c)$ um grafo ponderado. Se $F \subseteq E(G)$ é bom, então, para
+    cada $e \in F$, existe um corte $K$ de $G$ com $e \in K$,
+    $K \cap (F \setminus \{e\}) = \emptyset$, e</em>
+    <div class="math-display">
+      $$c(e) = \min\{c(f) \mid f \in K\}.$$
+    </div>
+  </div>
+
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Suponha que $F$ é bom e seja $e \in F$. Como $F$ é bom, existe uma árvore geradora
+    mínima $T$ de $(G, c)$ tal que $F \subseteq E(T)$. Sejam $x$ e $y$ as extremidades
+    de $e$, e defina
+
+    <div class="math-display">
+      $$X := [x]_{T-e}.$$
+    </div>
+
+    <p>
+      Afirmamos que $y \notin X$. De fato, se $y \in X$, então $T - e$ contém um
+      $(x, y)$-caminho. Adicionando a aresta $e = xy$ a esse caminho, obtemos um
+      circuito em $T$, uma contradição. Portanto $y \in V(T-e) \setminus X$.
+    </p>
+
+    <p>
+      Agora, pela definição de $X$, temos $\delta_{T-e}(X) = \emptyset$. Como $e$ tem
+      uma extremidade em $X$ e a outra em $V(T-e) \setminus X$, segue que
+      $\delta_T(X) = \{e\}$. Seja $K := \delta_G(X)$. Então $K$ é um corte de $G$ e
+      $e \in K$. Além disso, como $F \subseteq E(T)$ e $\delta_T(X) = \{e\}$, temos
+      $K \cap (F \setminus \{e\}) = \emptyset$.
+    </p>
+
+    <p>
+      Resta provar que $c(e) \leq c(f)$ para todo $f \in K$. Seja $f \in K$.
+      Se $f = e$, não há nada a provar. Suponha então que $f \neq e$. Como
+      $f \in K = \delta_G(X)$, a aresta $f$ tem uma extremidade em $X$ e a outra em
+      $V(G) \setminus X$. Como também $\delta_T(X) = \{e\}$, a aresta $e$ pertence ao
+      único caminho em $T$ que une as extremidades de $f$. Portanto, pelo Lema 3.4,
+      o grafo $T' := T - e + f$ é uma árvore. Como $V(T') = V(T) = V(G)$ e
+      $E(T') \subseteq E(G)$, $T'$ é uma árvore geradora de $G$. Como $T$ é uma árvore
+      geradora mínima de $(G, c)$, temos
+    </p>
+
+    <div class="math-display">
+      $$\tilde{c}(T) \leq \tilde{c}(T') = \tilde{c}(T) - c(e) + c(f).$$
+    </div>
+
+    <p>
+      Logo $c(e) \leq c(f)$. Portanto $c(e) = \min\{c(f) \mid f \in K\}$.
+      <span class="qed-inline">□</span>
+    </p>
+  </div>
+
+  <div class="corollary">
+    <span class="label">Corolário 3.7.</span>
+    <em>Seja $(G, c)$ um grafo ponderado conexo. O Algoritmo 3.2 retorna o conjunto de
+    arestas de uma árvore geradora mínima de $(G, c)$.</em>
+  </div>
+
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Pela corretude do Algoritmo 3.1, o Algoritmo 3.2 executa $|V(G)| - 1$ iterações e
+    retorna um conjunto $F \subseteq E(G)$ tal que $(V(G), F)$ é uma árvore geradora
+    de $G$.
+
+    <p>
+      Resta mostrar que essa árvore geradora tem peso mínimo. Provamos por indução no
+      número de iterações que $F$ é bom no início de cada iteração. No início, $F = \emptyset$,
+      que é bom porque $G$ tem ao menos uma árvore geradora mínima; além disso,
+      $E_0 \cap F = \emptyset$. Suponha agora que $F$ é bom no início de uma iteração.
+      O algoritmo escolhe um corte não-vazio $K$ com $K \cap F = \emptyset$, e então
+      escolhe uma aresta $e \in K$ de peso mínimo em $K$. Pelo Teorema 3.5, $F \cup \{e\}$
+      é bom. Assim o invariante é preservado.
+    </p>
+
+    <p>
+      Ao final do algoritmo, $(V(G), F)$ é uma árvore geradora de $G$. Como $F$ é bom,
+      existe uma árvore geradora mínima $T$ de $(G, c)$ tal que $F \subseteq E(T)$. Mas
+      tanto $(V(G), F)$ quanto $T$ são árvores geradoras de $G$, e portanto ambas têm
+      $|V(G)| - 1$ arestas. Logo $F = E(T)$. Assim $(V(G), F)$ é uma árvore geradora
+      mínima de $(G, c)$.
+      <span class="qed-inline">□</span>
+    </p>
+  </div>
+
+  <!-- ===== 3.3 Kruskal-Borůvka ===== -->
+  <h2 id="kruskal">3.3 Algoritmo de Kruskal-Borůvka</h2>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 3.3 &nbsp; <span class="alg-name">Kruskal</span>$(G, c)$
+    </div>
+    <div class="algorithm-body">
+      <ol class="alg-lines">
+        <li><span>$F \leftarrow \emptyset$</span></li>
+        <li><span>ordene as arestas de $G$ como $e_0, \ldots, e_{m-1}$ tal que $c(e_0) \leq c(e_1) \leq \cdots \leq c(e_{m-1})$</span></li>
+        <li><span><span class="alg-kw">para</span> $i \leftarrow 0$ <span class="alg-kw">até</span> $m - 1$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">se</span> $(V(G), F \cup \{e_i\})$ é acíclico <span class="alg-kw">então</span></span></li>
+        <li><span class="indent2">$F \leftarrow F \cup \{e_i\}$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $F$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="theorem">
+    <span class="label">Teorema 3.8.</span>
+    <em>Seja $(G, c)$ um grafo ponderado conexo. O Algoritmo 3.3 retorna um conjunto
+    $F \subseteq E(G)$ tal que $(V(G), F)$ é uma árvore geradora mínima de $(G, c)$.</em>
+  </div>
+
+  <div class="proof">
+    <span class="label">Demonstração.</span>
+    Sejam $e_0, \ldots, e_{m-1}$ a ordem na qual o Algoritmo 3.3 considera as arestas
+    de $G$. Assim
+    <div class="math-display">
+      $$c(e_0) \leq c(e_1) \leq \cdots \leq c(e_{m-1}).$$
+    </div>
+
+    <p>
+      Para cada $j \in [0 : m]$, seja $E_j := \{e_k \mid k \in [0 : j)\}$. Provaremos
+      por indução que, ao longo de toda a execução do algoritmo, vale que:
+    </p>
+
+    <ol style="margin-left:1.5rem; margin-bottom:0.5rem;">
+      <li style="margin-bottom:0.3rem;">(i) o conjunto $F$ é bom, e</li>
+      <li>(ii) para cada $xy \in E_i \setminus F$, existe um $(x, y)$-caminho no grafo $(V(G), F)$.</li>
+    </ol>
+
+    <p>
+      No início, $F = \emptyset$, que é bom pois $G$ é conexo e portanto possui uma
+      árvore geradora mínima; além disso, $E_0 \cap F = \emptyset$.
+    </p>
+
+    <p>
+      Suponha agora que, no início de uma iteração do laço-<span class="alg-kw">para</span>,
+      vale que $F$ é bom e que, para cada $xy \in E_i \setminus F$, existe um
+      $(x, y)$-caminho em $(V(G), F)$. Temos dois casos a considerar.
+    </p>
+
+    <p>
+      Primeiro, suponha que $(V(G), F \cup \{e_i\})$ não é acíclico. Devemos provar
+      que o invariante é preservado, a saber:
+    </p>
+
+    <ul style="margin-left:1.5rem; margin-bottom:0.5rem;">
+      <li>(1.i) $F$ é bom, e</li>
+      <li>(1.ii) para cada $xy \in E_{i+1} \setminus F$, existe um $(x, y)$-caminho em $(V(G), F)$.</li>
+    </ul>
+
+    <p>
+      Nesse caso, (1.i) é trivial, pois vale por hipótese. Para (ii), sejam $x$ e $y$
+      as extremidades de $e_i$. Como $(V(G), F \cup \{e_i\})$ não é acíclico, o grafo
+      $(V(G), F)$ contém um $(x, y)$-caminho. Isso prova (1.ii).
+    </p>
+
+    <p>
+      Suponha agora que $(V(G), F \cup \{e_i\})$ é acíclico. Devemos provar que:
+    </p>
+
+    <ul style="margin-left:1.5rem; margin-bottom:0.5rem;">
+      <li>(2.i) $F \cup \{e_i\}$ é bom, e</li>
+      <li>(2.ii) para cada $xy \in E_{i+1} \setminus (F \cup \{e_i\})$, existe um $(x, y)$-caminho em $(V(G), F)$.</li>
+    </ul>
+
+    <p>
+      Seja $H := (V(G), F)$ e seja $X := [x]_H$. Então $\delta_H(X) = \emptyset$.
+      Seja $K := \delta_G(X)$. Observe que $c(e_i) = \min\{c(f) \mid f \in K\}$. Seja
+      $f \in K \setminus \{e_i\}$. Afirmamos que $f = e_j$ para algum $j \in (i : m)$.
+      Para ver isso, observe que se $uv \in E_i \setminus F$, então $H$ contém um
+      $(u, v)$-caminho, e portanto qualquer corte que separa $u$ de $v$ também contém
+      uma aresta de $F$. Como $K \cap (E_i \setminus F) = \emptyset$. Como
+      $K \cap F = \emptyset$, segue que $f = e_j$ para algum $j \in (i : m)$ e,
+      assim, $c(e_i) \leq c(f)$. Pelo Teorema 3.5, $F \cup \{e_i\}$ também é bom,
+      e assim (2.i) vale. Para (ii), observe que $E_{i+1} \setminus (F \cup \{e_i\}) =
+      E_i \setminus F$, e portanto (2.ii) vale por hipótese.
+    </p>
+
+    <p>
+      Resta provar que o conjunto final $F$ define uma árvore geradora. Como $F$ é bom,
+      temos que $H := (V(G), F)$ é acíclico. Além disso, para toda aresta
+      $xy \in E(G) \setminus F$, existe um $(x, y)$-caminho em $H$. Afirmamos que $H$
+      é conexo. Seja $u \in V(G)$ e considere o conjunto $X := [u]_H$. Seja $x \in X$
+      e suponha que $xy \in E(G) \setminus F$. Como $H$ contém um $(x, y)$-caminho,
+      temos $y \in X$. Portanto $\delta_G(X) = \emptyset$. Como $G$ é conexo, temos
+      $X = \emptyset$ ou $X = V(G)$. Como $X \neq \emptyset$, temos $X = V(G)$.
+      Portanto $H$ é conexo.
+      <span class="qed-inline">□</span>
+    </p>
+  </div>
+
+  <!-- ===== 3.4 Exercises ===== -->
+  <h2 id="exercicios3">3.4 Exercícios</h2>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 3.1</span>
+    <p>
+      Sejam $T_1$ e $T_2$ árvores geradoras de um grafo $G$. Mostre que, para cada
+      $e \in E(T_1) \setminus E(T_2)$, existe $f \in E(T_2) \setminus E(T_1)$ tal que
+      ambas
+    </p>
+    <div class="math-display">
+      $$T_1 - e + f \qquad \text{e} \qquad T_2 - f + e$$
+    </div>
+    <p>são árvores geradoras de $G$.</p>
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 3.2</span>
+    <p>
+      Seja $(G, c)$ um grafo ponderado. Mostre que, se $T$ e $F$ são árvores geradoras
+      mínimas de $(G, c)$, então as listas dos pesos das arestas de $T$ e de $F$,
+      ordenadas em ordem não-decrescente de peso, são idênticas.
+    </p>
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 3.3</span>
+    <p>
+      Seja $(G, c)$ um grafo ponderado conexo e seja $\emptyset \neq X \subseteq V(G)$.
+      Prove ou refute cada uma das seguintes afirmações.
+    </p>
+    <ol style="margin-left:1.5rem;">
+      <li style="margin-bottom:0.5rem;">
+        (i) Se $T$ é uma árvore geradora mínima de $(G, c)$ e $T[X]$ é conexo, então
+        $T[X]$ é uma árvore geradora mínima de $(G[X], c)$.
+      </li>
+      <li>
+        (ii) Se $J$ é uma árvore geradora mínima de $(G[X], c)$, então $E(J)$ é bom
+        para $(G, c)$.
+      </li>
+    </ol>
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 3.4</span>
+    <p>
+      Seja $(G, c)$ um grafo ponderado conexo tal que $c(e) \neq c(f)$ para todo par
+      distinto de arestas $e, f \in E(G)$. Mostre que $(G, c)$ tem uma única árvore
+      geradora mínima.
+    </p>
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 3.5</span>
+    <p>
+      Seja $(G, c)$ um grafo ponderado conexo. Forneça um algoritmo que compute o
+      conjunto de todas as arestas que pertencem a alguma árvore geradora mínima de
+      $(G, c)$. Prove a corretude do seu algoritmo e determine sua complexidade de tempo.
+    </p>
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 3.6</span>
+    <p>
+      Seja $(G, c)$ um grafo ponderado conexo. Mostre que $(G, c)$ tem uma única árvore
+      geradora mínima se e somente se todo corte não-vazio $K$ de $G$ contém uma única
+      aresta $e \in K$ tal que
+    </p>
+    <div class="math-display">
+      $$c(e) = \min\{c(f) \mid f \in K\}.$$
+    </div>
+    <p>Mostre que a recíproca não vale.</p>
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 3.7</span>
+    <p>
+      Seja $(G, c)$ um grafo ponderado conexo e seja $T$ uma árvore geradora de $G$.
+      Defina
+    </p>
+    <div class="math-display">
+      $$b(T) := \max\{c(e) \mid e \in E(T)\}.$$
+    </div>
+    <p>
+      Uma aresta $e \in E(T)$ tal que $c(e) = b(T)$ é chamada de <em>aresta gargalo</em>
+      (<em>bottleneck edge</em>) de $T$. Uma árvore geradora $T$ de $G$ é chamada de
+      <em>árvore geradora de gargalo mínimo</em> (<em>minimum-bottleneck spanning
+      tree</em>) de $(G, c)$ se $b(T)$ é mínimo entre todas as árvores geradoras de $G$.
+    </p>
+    <p>Prove ou refute cada uma das seguintes afirmações.</p>
+    <ol style="margin-left:1.5rem;">
+      <li style="margin-bottom:0.5rem;">
+        (i) Se $T$ é uma árvore geradora de gargalo mínimo de $(G, c)$, então $T$ é
+        uma árvore geradora mínima de $(G, c)$.
+      </li>
+      <li>
+        (ii) Se $T$ é uma árvore geradora mínima de $(G, c)$, então $T$ é uma árvore
+        geradora de gargalo mínimo de $(G, c)$.
+      </li>
+    </ol>
+  </div>
+
+  <div class="chapter-nav">
+    <a href="capitulo2.html">← Capítulo 2: Algoritmos gulosos básicos</a>
+    <a href="index.html">Capa ↑</a>
+  </div>
+
+  <div style="margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);
+              font-size:0.82rem; color:#888; text-align:center;">
+    Tradução para o Português do Brasil. Conteúdo original © Mario Leston-Rey, 2026.
+  </div>
+
+</div>
+</body>
+</html>
