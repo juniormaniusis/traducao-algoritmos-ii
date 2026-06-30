@@ -1,0 +1,167 @@
+/* Análise de Algoritmos II — Tradução PT-BR */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --text: #1a1a1a;
+  --bg: #fafaf8;
+  --accent: #c0392b;
+  --link: #2c5f8a;
+  --border: #e0ddd8;
+  --figure-bg: #f4f2ee;
+  --max-width: 760px;
+  --font-serif: 'Georgia', 'Times New Roman', serif;
+  --font-mono: 'Courier New', monospace;
+}
+
+html { font-size: 18px; }
+body {
+  font-family: var(--font-serif);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.7;
+  padding: 2rem 1rem;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+/* Navigation */
+nav {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+  padding-bottom: 1rem;
+  font-size: 0.85rem;
+}
+nav a { color: var(--link); text-decoration: none; margin-right: 1.5rem; }
+nav a:hover { text-decoration: underline; }
+nav .current { font-weight: bold; color: var(--text); }
+
+/* Cover page */
+.cover {
+  text-align: center;
+  padding: 5rem 0 4rem;
+}
+.cover h1 { font-size: 2.2rem; margin-bottom: 0.75rem; }
+.cover .author { font-size: 1rem; color: #555; margin-bottom: 0.25rem; }
+.cover .date { font-size: 0.9rem; color: #888; }
+.cover .toc-link {
+  display: inline-block;
+  margin-top: 3rem;
+  padding: 0.6rem 1.5rem;
+  background: var(--text);
+  color: var(--bg);
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: 3px;
+}
+.cover .toc-link:hover { background: #333; }
+
+/* Table of contents */
+.toc h2 { font-size: 1.6rem; margin-bottom: 1.5rem; }
+.toc ol { padding-left: 1.5rem; }
+.toc li { margin-bottom: 0.5rem; }
+.toc a { color: var(--link); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.toc .chapter { font-size: 1.05rem; font-weight: bold; margin-top: 1rem; }
+.toc .section { margin-left: 1rem; font-size: 0.95rem; font-weight: normal; }
+.toc .subsection { margin-left: 2rem; font-size: 0.9rem; color: #555; }
+
+/* Chapter headings */
+h1.chapter-title { font-size: 2rem; margin-bottom: 0.3rem; color: #111; }
+.chapter-label { font-size: 1rem; color: #888; margin-bottom: 0.5rem; display: block; }
+h2 { font-size: 1.4rem; margin: 2.5rem 0 0.75rem; border-top: 1px solid var(--border); padding-top: 1.2rem; }
+h3 { font-size: 1.15rem; margin: 2rem 0 0.5rem; }
+
+/* Body text */
+p { margin-bottom: 1rem; }
+p + p { text-indent: 1.5em; margin-top: -0.25rem; }
+
+/* Math terms — italics with red accent on first occurrence */
+.term { color: var(--accent); font-style: italic; }
+
+/* Theorems, lemmas, etc. */
+.theorem, .lemma, .proposition, .corollary, .definition {
+  border-left: 3px solid var(--accent);
+  padding: 0.75rem 1rem;
+  margin: 1.5rem 0;
+  background: #fff;
+}
+.theorem .label, .lemma .label, .proposition .label,
+.corollary .label, .definition .label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.proof {
+  margin: 0.75rem 0 1.5rem;
+  padding-left: 1rem;
+}
+.proof .label { font-style: italic; font-weight: bold; }
+.proof .qed {
+  float: right;
+  font-size: 1.1rem;
+  margin-top: -1.5rem;
+}
+
+/* Figures */
+figure {
+  background: var(--figure-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.25rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+figure img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 0.75rem;
+}
+figcaption {
+  font-size: 0.85rem;
+  color: #444;
+  text-align: left;
+  line-height: 1.5;
+}
+figcaption strong { color: #111; }
+
+/* Math display blocks */
+.math-display {
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  padding: 0.5rem 0;
+  text-align: center;
+}
+
+/* Footnotes */
+.footnotes {
+  border-top: 1px solid var(--border);
+  margin-top: 3rem;
+  padding-top: 1rem;
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.5;
+}
+.footnote-ref { font-size: 0.75rem; vertical-align: super; color: var(--link); }
+
+/* Chapter navigation footer */
+.chapter-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+.chapter-nav a { color: var(--link); text-decoration: none; }
+.chapter-nav a:hover { text-decoration: underline; }
+
+@media (max-width: 600px) {
+  html { font-size: 16px; }
+  h1.chapter-title { font-size: 1.6rem; }
+  h2 { font-size: 1.2rem; }
+}
