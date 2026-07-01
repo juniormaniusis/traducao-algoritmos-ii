@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capítulo 2 — Algoritmos gulosos básicos | Análise de Algoritmos II</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script>
+    MathJax = {
+      tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <style>
+    .algorithm {
+      border: 1.5px solid #888;
+      border-radius: 3px;
+      margin: 1.5rem 0;
+      font-size: 0.92rem;
+    }
+    .algorithm-header {
+      background: #e8e8e8;
+      border-bottom: 1.5px solid #888;
+      padding: 0.4rem 0.85rem;
+      font-weight: bold;
+      font-family: var(--font-serif);
+      letter-spacing: 0.01em;
+    }
+    .algorithm-header .alg-name {
+      font-variant: small-caps;
+    }
+    .algorithm-body {
+      padding: 0.6rem 0.85rem;
+      font-family: var(--font-serif);
+    }
+    .algorithm-body .require,
+    .algorithm-body .ensure {
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+    }
+    .algorithm-body .require strong,
+    .algorithm-body .ensure strong {
+      font-weight: bold;
+    }
+    .alg-lines {
+      list-style: none;
+      padding: 0;
+      margin: 0.4rem 0 0;
+      counter-reset: alg-line;
+    }
+    .alg-lines li {
+      counter-increment: alg-line;
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 0.1rem;
+      line-height: 1.55;
+    }
+    .alg-lines li::before {
+      content: counter(alg-line) ":";
+      min-width: 2rem;
+      color: #666;
+      font-size: 0.82rem;
+      flex-shrink: 0;
+    }
+    .alg-lines li .indent1 { padding-left: 1.5rem; }
+    .alg-lines li .indent2 { padding-left: 3rem; }
+    .alg-lines li .indent3 { padding-left: 4.5rem; }
+    .alg-kw { font-weight: bold; }
+
+    .exercise {
+      background: #eef0f8;
+      border: 1px solid #c5cae0;
+      border-radius: 3px;
+      padding: 0.85rem 1.1rem;
+      margin: 1.25rem 0;
+    }
+    .exercise .ex-label {
+      font-weight: bold;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    .qed-inline {
+      float: right;
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-top: 0.2rem;
+    }
+
+    .theorem-box {
+      border-left: 3px solid #666;
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      background: #f9f9f9;
+    }
+    .theorem-label {
+      font-weight: bold;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <nav>
+    <a href="index.html">Capa</a>
+    <a href="capitulo1.html">Capítulo 1</a>
+    <span class="current">Capítulo 2</span>
+    <a href="capitulo3.html">Capítulo 3</a>
+  </nav>
+
+  <span class="chapter-label">Capítulo 2</span>
+  <h1 class="chapter-title">Algoritmos gulosos básicos</h1>
+
+  <p>
+    Como observação geral, ao longo do texto, uma função de um conjunto $A$ para um conjunto $B$ é um subconjunto $f \subseteq A \times B$ tal que, para todo $a \in A$, existe um único $b \in B$ com $(a, b) \in f$. Esse elemento único é denotado por $f(a)$. Nesse caso, escrevemos $f : A \to B$. O domínio de $f$, denotado por $\mathrm{dom}(f)$, é $A$. Além disso, $\mathbb{R}_+$ denota o conjunto dos reais não negativos, enquanto $\mathbb{R}_{++}$ denota o conjunto dos reais estritamente positivos.
+  </p>
+
+  <p>
+    Exploraremos uma certa forma de algoritmo guloso. A ideia básica é a seguinte. Suponha que temos um conjunto finito $U$ e uma coleção de subconjuntos de $U$, chamados <em>conjuntos viáveis</em>. A cada conjunto viável associamos um custo, e queremos encontrar um conjunto viável de custo máximo ou mínimo.
+  </p>
+
+  <p>
+    O algoritmo é recursivo e pode ser descrito informalmente da seguinte forma. Se $U$ é vazio, simplesmente retorne $\emptyset$; estamos assumindo implicitamente que o conjunto vazio é viável. Caso contrário, faça uma <em>escolha gulosa</em> — qualquer que seja seu significado no problema em questão — e selecione um elemento $u \in U$. Em seguida, reduza o problema a um subconjunto próprio $U' \subset U$ com a seguinte propriedade: sempre que $X'$ é um subconjunto viável contido em $U'$, o conjunto $X' \cup \{u\}$ é viável no problema original. Encontre recursivamente um subconjunto viável $X'$ de $U'$ de custo máximo ou mínimo. Finalmente, retorne $X' \cup \{u\}$.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 1 &nbsp; <span class="alg-name">GuleiroRecursivo</span>$(U)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Um conjunto finito $U$</div>
+      <div class="ensure"><strong>Garante:</strong> Um subconjunto viável de $U$</div>
+      <ol class="alg-lines">
+        <li><span><span class="alg-kw">se</span> $U = \emptyset$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">retorne</span> $\emptyset$</span></li>
+        <li><span>escolha $u \in U$ de acordo com a escolha gulosa</span></li>
+        <li><span>construa um subconjunto próprio $U' \subset U$</span></li>
+        <li><span>$X' \leftarrow \text{GuleiroRecursivo}(U')$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $X' \cup \{u\}$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    Naturalmente, essa descrição é apenas um esquema. Ela não garante por si só que o algoritmo retorna uma solução ótima. A dificuldade está em provar que tanto a escolha gulosa quanto o passo de redução são seguros. Em outras palavras, devemos provar que alguma solução ótima do problema original pode ser obtida estendendo uma solução ótima do problema reduzido pelo elemento escolhido.
+  </p>
+
+  <p>
+    Esse algoritmo recursivo também pode ser implementado de forma iterativa. Mantemos um conjunto $X$ de elementos já escolhidos pelo algoritmo; inicialmente, $X = \emptyset$. A cada iteração, se $U = \emptyset$, retornamos $X$ e paramos. Caso contrário, fazemos uma escolha gulosa e selecionamos um elemento $u \in U$. Atualizamos então $X$ para $X \cup \{u\}$, reduzimos o problema atual a um subconjunto próprio $U' \subset U$, e começamos a próxima iteração com $U'$ no lugar de $U$ e $X \cup \{u\}$ no lugar de $X$.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 2 &nbsp; <span class="alg-name">GuleiroIterativoRedução</span>$(U)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Um conjunto finito $U$</div>
+      <div class="ensure"><strong>Garante:</strong> Um subconjunto viável do conjunto original $U$</div>
+      <ol class="alg-lines">
+        <li><span>$X \leftarrow \emptyset$</span></li>
+        <li><span><span class="alg-kw">enquanto</span> $U \neq \emptyset$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1">escolha $u \in U$ de acordo com a escolha gulosa</span></li>
+        <li><span class="indent1">$X \leftarrow X \cup \{u\}$</span></li>
+        <li><span class="indent1">construa um subconjunto próprio $U' \subset U$</span></li>
+        <li><span class="indent1">$U \leftarrow U'$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $X$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    Existe outra forma comum de organizar esse algoritmo guloso. Primeiro, escolhemos uma ordenação dos elementos de $U$ que reflita as escolhas gulosas. Os elementos são então considerados um a um. Quando um elemento é considerado, o algoritmo ou o adiciona à solução atual ou o descarta permanentemente. Os elementos descartados nesse processo são precisamente aqueles que pertencem à instância atual mas não à instância reduzida.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 3 &nbsp; <span class="alg-name">VarredulaGulosa</span>$(U)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Um conjunto finito $U$</div>
+      <div class="ensure"><strong>Garante:</strong> Um subconjunto viável de $U$</div>
+      <ol class="alg-lines">
+        <li><span>escolha uma ordenação $u_0, \ldots, u_{n-1}$ dos elementos de $U$</span></li>
+        <li><span>$X \leftarrow \emptyset$</span></li>
+        <li><span><span class="alg-kw">para</span> $r \leftarrow 0$ <span class="alg-kw">até</span> $n-1$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">se</span> $X \cup \{u_r\}$ é viável <span class="alg-kw">então</span></span></li>
+        <li><span class="indent2">$X \leftarrow X \cup \{u_r\}$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $X$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== 2.1 Cobertura de intervalos ===== -->
+  <h2 id="cobertura">2.1 Cobertura de intervalos</h2>
+
+  <h3 id="cobertura-problema">2.1.1 O problema</h3>
+
+  <p>
+    Seja $d \in \mathbb{R}$ com $d > 0$. Dizemos que um ponto $q \in \mathbb{R}$ <em>cobre</em> um ponto $p \in \mathbb{R}$ se $q \leq p < q + d$, ou equivalentemente, se $p \in [q, q+d)$. Dizemos que um subconjunto $Q$ de $\mathbb{R}$ cobre um ponto $p \in \mathbb{R}$ se existe $q \in Q$ tal que $q$ cobre $p$. Além disso, dizemos que $Q$ é uma <em>cobertura</em> de $P \subseteq \mathbb{R}$ se $Q$ cobre todo ponto de $P$.
+  </p>
+
+  <p>
+    Estamos interessados em encontrar uma cobertura de um subconjunto finito $P$ de $\mathbb{R}$ com o menor número possível de pontos. Tal cobertura é chamada de <em>cobertura mínima</em> de $P$, ou, mais precisamente, uma cobertura mínima de $(P, d)$. Este é o <em>problema de cobertura por intervalos de igual comprimento</em>. Note que o próprio $P$ é uma cobertura de $P$. Portanto, todo subconjunto finito de $\mathbb{R}$ possui uma cobertura finita.
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig2-1.png"
+         alt="Um conjunto Q cobre o conjunto P: todo ponto de P pertence a algum intervalo [q, q+d) para algum q em Q.">
+    <figcaption>
+      <strong>Figura 2.1:</strong> Uma cobertura de $P$ por intervalos semiaberetos de igual comprimento. O conjunto $Q := \{q_0, q_1, q_2\}$ cobre $P$, pois todo ponto de $P$ pertence a algum intervalo $[q, q+d)$ para algum $q \in Q$.
+    </figcaption>
+  </figure>
+
+  <h3 id="cobertura-recursivo">2.1.2 Uma abordagem recursiva</h3>
+
+  <p>
+    Exploraremos a ideia de um algoritmo guloso para esse problema. Dado um conjunto finito de pontos $P$ com $P \neq \emptyset$ — pois para $P = \emptyset$ a solução é óbvia —, primeiro fazemos uma escolha gulosa: escolhemos o elemento mínimo $p$ de $P$. Em seguida, formamos o subproblema consistindo de todos os pontos de $P$ que não são cobertos por $p$. Após calcular recursivamente uma cobertura mínima para esse subproblema, tentamos estendê-la adicionando $p$. Para justificar o algoritmo, devemos provar que a cobertura obtida dessa forma é uma cobertura mínima do conjunto original $P$. O próximo teorema mostra que essa estratégia sempre funciona.
+  </p>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Teorema 1.</span> Seja $P$ um subconjunto finito não vazio de $\mathbb{R}$, e seja $d \in \mathbb{R}$ com $d > 0$. Seja $p$ o elemento mínimo de $P$, e seja $P' := \{q \in P \mid q \geq p + d\}$. Se $Q'$ é uma cobertura mínima de $P'$, então $Q' \cup \{p\}$ é uma cobertura mínima de $P$.
+  </div>
+
+  <p>
+    <em>Prova.</em> Suponha que $Q'$ é uma cobertura mínima de $P'$. Seja $R$ uma cobertura finita de $P$, e seja $Q := \{p\} \cup Q'$. Mostraremos que $|Q| \leq |R|$.
+  </p>
+  <p>
+    Primeiro, $Q$ é uma cobertura de $P$: se $q \in P$ e $q < p + d$, então $p \leq q < p + d$, logo $\{p\}$ cobre $q$. Se $q \geq p + d$, então $q \in P'$, e $Q'$ cobre $q$.
+  </p>
+  <p>
+    Como $R$ é cobertura de $P$, existe $r \in R$ tal que $r \leq p < r + d$. Seja $\tilde{P} := \{q \in P \mid q \geq r + d\}$. Como $p$ é mínimo em $P$ e $r \leq p$, temos $r + d \leq p + d$, logo $P' \subseteq \tilde{P}$. O conjunto $\tilde{R} := R \setminus \{r\}$ é uma cobertura de $\tilde{P}$, e portanto de $P'$. Como $Q'$ é cobertura mínima de $P'$, temos $|Q'| \leq |\tilde{R}|$. Portanto $|Q| \leq |Q'| + 1 \leq |\tilde{R}| + 1 = |R|$. <span class="qed-inline">$\square$</span>
+  </p>
+
+  <p>
+    O teorema acima sugere imediatamente o seguinte algoritmo recursivo.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 4 &nbsp; <span class="alg-name">CoberturaIntervalos</span>$(P, d)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Um conjunto finito $P \subseteq \mathbb{R}$ e um número real $d > 0$</div>
+      <div class="ensure"><strong>Garante:</strong> Uma cobertura mínima de $(P, d)$</div>
+      <ol class="alg-lines">
+        <li><span><span class="alg-kw">se</span> $P = \emptyset$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">retorne</span> $\emptyset$</span></li>
+        <li><span>seja $p \leftarrow \min P$</span></li>
+        <li><span>$P' \leftarrow \{q \in P \mid q \geq p + d\}$</span></li>
+        <li><span>$Q' \leftarrow \text{CoberturaIntervalos}(P', d)$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $Q' \cup \{p\}$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <h3 id="cobertura-iterativo">2.1.3 Uma abordagem iterativa</h3>
+
+  <p>
+    É fácil obter do algoritmo recursivo uma implementação iterativa mais eficiente. Primeiro, ordenamos os pontos como $p_0, \ldots, p_{n-1}$ de modo que $p_0 \leq \cdots \leq p_{n-1}$. Em seguida, percorremos essa ordenação da esquerda para a direita, mantendo apenas o último ponto escolhido para a cobertura. Se o ponto atual já é coberto pelo último ponto escolhido, o descartamos; caso contrário, o adicionamos à cobertura.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 5 &nbsp; <span class="alg-name">CoberturaIntervalosRápido</span>$(P, d)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Um conjunto finito não vazio $P \subseteq \mathbb{R}$ e um real $d > 0$</div>
+      <div class="ensure"><strong>Garante:</strong> Uma cobertura mínima de $(P, d)$</div>
+      <ol class="alg-lines">
+        <li><span>seja $p_0, \ldots, p_{n-1}$ uma ordenação de $P$ tal que $p_0 \leq \cdots \leq p_{n-1}$</span></li>
+        <li><span>$Q \leftarrow \{p_0\}$</span></li>
+        <li><span>$\ell \leftarrow p_0$</span></li>
+        <li><span><span class="alg-kw">para</span> $r \leftarrow 1$ <span class="alg-kw">até</span> $n-1$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">se</span> $p_r \geq \ell + d$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent2">$Q \leftarrow Q \cup \{p_r\}$</span></li>
+        <li><span class="indent2">$\ell \leftarrow p_r$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $Q$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    <strong>Análise de complexidade.</strong> Seja $n := |P|$. O primeiro passo consiste em ordenar os pontos, o que pode ser feito em tempo $O(n \lg n)$. O laço tem $n-1$ iterações, cada uma em tempo $O(1)$. Portanto, o tempo total de execução do Algoritmo 5 é $O(n \lg n)$.
+  </p>
+
+  <h3 id="cobertura-minmax">2.1.4 Uma abordagem min-max</h3>
+
+  <p>
+    Seja $P$ um subconjunto finito de $\mathbb{R}$ e $d \in \mathbb{R}$ com $d > 0$. Dizemos que um subconjunto $S \subseteq P$ é <em>$d$-separado</em> se a distância entre quaisquer dois pontos distintos de $S$ é pelo menos $d$, ou seja, $|x - y| \geq d$ para todo $x, y \in S$ com $x \neq y$.
+  </p>
+
+  <p>
+    Suponha que $Q$ é uma cobertura de $P$ e que $S \subseteq P$ é $d$-separado. Cada elemento de $Q$ cobre no máximo um elemento de $S$ (pois dois elementos distintos de $S$ distam pelo menos $d$). Como $Q$ cobre todo elemento de $S$, segue que $|Q| \geq |S|$. Portanto,
+    $$\min\{|Q| \mid Q \text{ é cobertura de } P\} \geq \max\{|S| \mid S \subseteq P \text{ é } d\text{-separado}\}.$$
+  </p>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Lema 1.</span> Seja $P$ um subconjunto finito de $\mathbb{R}$ e $d \in \mathbb{R}$ com $d > 0$. Se $Q^*$ é uma cobertura de $P$, $S^* \subseteq P$ é $d$-separado e $|S^*| = |Q^*|$, então $Q^*$ é uma cobertura mínima de $P$ e $S^*$ é um subconjunto $d$-separado máximo de $P$.
+  </div>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Teorema 2.</span> Seja $P$ um subconjunto finito de $\mathbb{R}$ e $d \in \mathbb{R}$ com $d > 0$. Então existe uma cobertura $Q$ de $P$ e um conjunto $d$-separado $S \subseteq P$ tais que $|Q| = |S|$.
+  </div>
+
+  <p>
+    <em>Prova.</em> Por indução em $|P|$. Para $P = \emptyset$ o resultado é trivial. Suponha $P \neq \emptyset$ e seja $p := \min P$. Considere $P' := \{q \in P \mid q \geq p + d\}$. Por hipótese de indução, existem $Q'$ cobertura de $P'$ e $S' \subseteq P'$ $d$-separado com $|Q'| = |S'|$. Então $Q := \{p\} \cup Q'$ é cobertura de $P$ e $S := \{p\} \cup S'$ é $d$-separado em $P$, com $|Q| = |S|$. <span class="qed-inline">$\square$</span>
+  </p>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Lema 2.</span> Seja $P$ um subconjunto finito de $\mathbb{R}$, $d \in \mathbb{R}$ com $d > 0$. Seja $P' \subset P$ tal que todo ponto de $P'$ é menor do que todo ponto de $P \setminus P'$, e seja $p := \min(P \setminus P')$. Suponha que $Q' \subseteq P'$ é uma cobertura de $P'$ que é $d$-separada. Então:
+    <ol style="margin-top:0.5rem;">
+      <li>se $Q'$ cobre $p$, então $Q'$ é uma cobertura de $P' \cup \{p\}$ que é $d$-separada;</li>
+      <li>se $Q'$ não cobre $p$, então $Q' \cup \{p\}$ é uma cobertura de $P' \cup \{p\}$ que é $d$-separada.</li>
+    </ol>
+  </div>
+
+  <p>
+    O Lema 2 permite provar a corretude do Algoritmo 5 diretamente, mostrando que o conjunto $Q$ devolvido é simultaneamente uma cobertura de $P$ e um subconjunto $d$-separado de $P$. Pelo Lema 1, $Q$ é então uma cobertura mínima e um subconjunto $d$-separado máximo de $P$.
+  </p>
+
+  <!-- ===== 2.2 Escalonamento de tarefas ===== -->
+  <h2 id="escalonamento">2.2 O problema de escalonamento de tarefas</h2>
+
+  <h3>2.2.1 O problema</h3>
+
+  <p>
+    Uma <em>estrutura de tarefas</em> é uma tripla $(T, s, f)$ tal que $T$ é um conjunto finito, $s$ e $f$ são funções com valores reais cujos domínios contêm $T$, e $s_i < f_i$ para todo $i \in T$. Os elementos de $T$ são chamados de <em>tarefas</em>. Se $t \in T$, escrevemos $s_t$ e $f_t$ para $s(t)$ e $f(t)$, respectivamente.
+  </p>
+
+  <p>
+    Para tarefas distintas $i$ e $k$, dizemos que $i$ e $k$ são <em>compatíveis</em> se $[s_i, f_i) \cap [s_k, f_k) = \emptyset$; caso contrário, são <em>incompatíveis</em>. Um subconjunto $I \subseteq T$ é <em>compatível</em> se quaisquer duas tarefas distintas em $I$ são compatíveis. Um subconjunto compatível $B$ de $T$ é <em>ótimo em $(T, s, f)$</em>, ou um <em>subconjunto compatível máximo</em> de $(T, s, f)$, se nenhum subconjunto compatível de $T$ tem tamanho maior do que $|B|$.
+  </p>
+
+  <p>
+    O <em>problema de escalonamento de tarefas</em> consiste em encontrar um subconjunto compatível de $T$ que seja ótimo em $T$.
+  </p>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 2.1</span>
+    Seja $(T, s, f)$ uma estrutura de tarefas, e seja $X \subseteq T$ compatível. Mostre que existe uma ordenação $x_0, \ldots, x_{m-1}$ dos elementos de $X$ tal que $f_{x_r} \leq s_{x_{r+1}}$ para todo $r \in [0 : m-1)$.
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 2.2</span>
+    Seja $(T, s, f)$ uma estrutura de tarefas. Escreva um algoritmo que recebe um subconjunto $X \subseteq T$ e decide se $X$ é compatível. O tempo de execução do algoritmo deve ser $O(|X| \lg |X|)$.
+  </div>
+
+  <h3>2.2.2 Um algoritmo recursivo</h3>
+
+  <p>
+    Exploraremos novamente a ideia de um algoritmo guloso, agora para o problema de escalonamento de tarefas. Dado uma estrutura de tarefas $(T, s, f)$ com $T \neq \emptyset$, fazemos primeiro uma escolha gulosa de acordo com algum critério, selecionando uma tarefa $i$. Em seguida, formamos o subproblema consistindo de todas as tarefas restantes que são compatíveis com $i$, e depois recursivamente encontramos um subconjunto compatível ótimo.
+  </p>
+
+  <p>
+    Vejamos que algumas escolhas gulosas naturais não funcionam. Considere primeiro escolher a tarefa que começa mais cedo, ou seja, a tarefa $i$ com $s_i = \min\{s_k \mid k \in T\}$. A figura abaixo mostra que essa estratégia falha.
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig2-2.png"
+         alt="Escolher a tarefa que começa mais cedo não produz subconjunto compatível ótimo.">
+    <figcaption>
+      <strong>Figura 2.2:</strong> Escolher a tarefa que começa mais cedo não produz necessariamente um subconjunto compatível máximo. A tarefa azul $a$ tem o menor tempo de início, mas escolhê-la primeiro impede o conjunto compatível $\{b, c, d, e\}$ mostrado em vermelho.
+    </figcaption>
+  </figure>
+
+  <p>
+    Considere agora a escolha da tarefa $i$ que conflita com o menor número de outras tarefas. A figura abaixo mostra que essa estratégia também não funciona.
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig2-3.png"
+         alt="Escolher a tarefa com menos conflitos não produz subconjunto compatível ótimo.">
+    <figcaption>
+      <strong>Figura 2.3:</strong> Escolher a tarefa com número mínimo de conflitos não produz necessariamente um subconjunto compatível máximo. A tarefa $e$ tem apenas dois conflitos (com $b$ e $c$), mas escolhê-la impede o conjunto compatível $\{a, b, c, d\}$.
+    </figcaption>
+  </figure>
+
+  <p>
+    A escolha gulosa que realmente funciona consiste em escolher a tarefa que <em>termina mais cedo</em>, como mostramos agora.
+  </p>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Teorema 3.</span> Seja $(T, s, f)$ uma estrutura de tarefas com $T \neq \emptyset$. Seja $i \in T$ tal que $f_i = \min\{f_t \mid t \in T\}$, e seja $T' := \{k \in T \mid s_k \geq f_i\}$. Se $B'$ é ótimo em $T'$, então $B' \cup \{i\}$ é ótimo em $T$.
+  </div>
+
+  <p>
+    <em>Prova.</em> O conjunto $B := B' \cup \{i\}$ é compatível, pois toda tarefa $k \in B'$ satisfaz $s_k \geq f_i$. Seja $J$ qualquer subconjunto compatível de $T$. Se $J = \emptyset$, claro que $|J| \leq |B|$. Caso contrário, seja $j \in J$ com $f_j = \min\{f_t \mid t \in J\}$. Pela escolha de $i$, temos $f_j \geq f_i$. Para $t \in J \setminus \{j\}$, como $J$ é compatível e $f_j$ é mínimo em $J$, temos $s_t \geq f_j \geq f_i$, logo $J \setminus \{j\} \subseteq T'$. Como $B'$ é ótimo em $T'$, $|J \setminus \{j\}| \leq |B'|$, portanto $|J| \leq |B'| + 1 = |B|$. <span class="qed-inline">$\square$</span>
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 6 &nbsp; <span class="alg-name">Escalona</span>$(T, s, f)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Um conjunto finito de tarefas $T$</div>
+      <div class="ensure"><strong>Garante:</strong> Um subconjunto compatível de $T$ ótimo em $T$</div>
+      <ol class="alg-lines">
+        <li><span><span class="alg-kw">se</span> $T = \emptyset$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">retorne</span> $\emptyset$</span></li>
+        <li><span>escolha $i \in T$ tal que $f_i = \min\{f_t \mid t \in T\}$</span></li>
+        <li><span>$T' \leftarrow \{k \in T \mid s_k \geq f_i\}$</span></li>
+        <li><span>$B' \leftarrow \text{Escalona}(T', s, f)$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $B' \cup \{i\}$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>2.2.3 Uma abordagem iterativa</h3>
+
+  <p>
+    Seja $I$ a coleção de todos os subconjuntos compatíveis de uma estrutura de tarefas $(T, s, f)$. Dizemos que $I \subseteq X$ é <em>$X$-bom</em> se existe um subconjunto compatível $B$ de $T$ que é ótimo em $T$ e tal que $I \subseteq B$ e $B \setminus I \subseteq T \setminus X$.
+  </p>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Teorema 4.</span> Seja $(T, s, f)$ uma estrutura de tarefas, e seja $X \subset T$. Suponha que $I \subseteq X$ é $X$-bom. Seja $j \in T \setminus X$ tal que $f_j = \min\{f_t \mid t \in T \setminus X\}$. Então:
+    <ol style="margin-top:0.5rem;">
+      <li>se $I \cup \{j\} \notin \mathcal{I}$, então $I$ é $(X \cup \{j\})$-bom;</li>
+      <li>se $I \cup \{j\} \in \mathcal{I}$, então $I \cup \{j\}$ é $(X \cup \{j\})$-bom.</li>
+    </ol>
+  </div>
+
+  <figure>
+    <img src="assets/figures/fig2-4.png"
+         alt="Ilustração da inserção de j e remoção de i na prova do Teorema 4.">
+    <figcaption>
+      <strong>Figura 2.4:</strong> Na prova do Teorema 4, a tarefa $j$ é inserida e a tarefa $i$ é removida de $B$, obtendo um conjunto ótimo $B' = (B \setminus \{i\}) \cup \{j\}$.
+    </figcaption>
+  </figure>
+
+  <p>
+    O teorema acima conduz a uma versão iterativa do algoritmo de escalonamento. A cada passo, consideramos a tarefa de menor tempo de término dentre as ainda não consideradas, e decidimos se ela entra ou não na solução atual.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 7 &nbsp; <span class="alg-name">EsalonaIterativo</span>$(T, s, f)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Uma estrutura de tarefas $(T, s, f)$</div>
+      <div class="ensure"><strong>Garante:</strong> Um subconjunto compatível ótimo de $T$</div>
+      <ol class="alg-lines">
+        <li><span>seja $t_0, t_1, \ldots, t_{n-1}$ uma ordenação de $T$ tal que $f_{t_0} \leq f_{t_1} \leq \cdots \leq f_{t_{n-1}}$</span></li>
+        <li><span>$I \leftarrow \{t_0\}$</span></li>
+        <li><span>$\ell \leftarrow t_0$</span></li>
+        <li><span><span class="alg-kw">para</span> $r \leftarrow 1$ <span class="alg-kw">até</span> $n-1$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">se</span> $s_{t_r} \geq f_\ell$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent2">$I \leftarrow I \cup \{t_r\}$</span></li>
+        <li><span class="indent2">$\ell \leftarrow t_r$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $I$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>2.2.4 Uma implementação</h3>
+
+  <figure>
+    <img src="assets/figures/fig2-5.png"
+         alt="Exemplo de escalonamento de tarefas.">
+    <figcaption>
+      <strong>Figura 2.5:</strong> Exemplo de uma instância de escalonamento. As tarefas em azul formam o subconjunto compatível máximo retornado pelo algoritmo guloso.
+    </figcaption>
+  </figure>
+
+  <h3>2.2.5 Uma abordagem min-max</h3>
+
+  <p>
+    Seja $(T, s, f)$ uma estrutura de tarefas. Um <em>clique</em> é um subconjunto $C$ de $T$ tal que, para todo $i, k \in C$ com $i \neq k$, temos $[s_i, f_i) \cap [s_k, f_k) \neq \emptyset$.
+  </p>
+
+  <p>
+    Se $C$ é um clique não vazio, então $\bigcap_{t \in C} [s_t, f_t) \neq \emptyset$.
+  </p>
+
+  <p>
+    Se $I$ é compatível e $C$ é um clique, então $|C \cap I| \leq 1$, pois duas tarefas de $C$ se intersectam e portanto não podem ambas pertencer a $I$. Segue que
+    $$\min\{|P| \mid P \text{ é partição compatível de } T\} \geq \max\{|C| \mid C \subseteq T \text{ é clique}\}.$$
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig2-6.png"
+         alt="Grafo de conflito das tarefas.">
+    <figcaption>
+      <strong>Figura 2.6:</strong> Grafo de conflito das tarefas. Dois vértices são adjacentes exatamente quando as tarefas correspondentes são incompatíveis.
+    </figcaption>
+  </figure>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Teorema 5.</span> Para cada estrutura de tarefas $(T, s, f)$, existe uma partição-clique $\mathcal{C}$ de $T$ e um subconjunto compatível $I$ de $T$ tais que $|\mathcal{C}| = |I|$.
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 2.4</span>
+    Seja $(T, s, f)$ uma estrutura de tarefas, e seja $C \subseteq T$. Escreva um algoritmo que decide se $C$ é um clique em tempo $O(|C|)$.
+  </div>
+
+  <h3>2.2.6 Abordagem via caminho mais longo</h3>
+
+  <p>
+    O problema de escalonamento de tarefas pode ser visto como um problema de caminho mais longo num dígrafo acíclico. Dado $(T, s, f)$, o <em>dígrafo de compatibilidade</em> de $T$ é o dígrafo $D = (T, A)$ onde $(i, k) \in A$ se e somente se $i$ e $k$ são compatíveis e $f_i \leq s_k$. Um caminho máximo nesse dígrafo corresponde a um subconjunto compatível máximo de $T$.
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig2-7.png"
+         alt="Dígrafo de compatibilidade das tarefas.">
+    <figcaption>
+      <strong>Figura 2.7:</strong> O dígrafo de compatibilidade das tarefas. Cada arco $(i, k)$ indica que a tarefa $i$ termina antes ou quando a tarefa $k$ começa.
+    </figcaption>
+  </figure>
+
+  <!-- ===== 2.3 Escalonamento de todas as tarefas ===== -->
+  <h2 id="escalonamento-total">2.3 Escalonamento de todas as tarefas</h2>
+
+  <p>
+    Agora passamos ao problema de encontrar o número mínimo de recursos necessários para alocar todas as tarefas de modo que o conjunto de tarefas atribuído a cada recurso seja compatível.
+  </p>
+
+  <p>
+    Seja $(T, s, f)$ uma estrutura de tarefas. Uma <em>partição compatível</em> de $T$ é uma partição $\mathcal{P}$ de $T$ tal que cada $P \in \mathcal{P}$ é compatível. Estamos interessados em encontrar uma partição compatível $\mathcal{P}$ de $T$ com o menor número possível de partes.
+  </p>
+
+  <p>
+    Se $C \subseteq T$ é um clique e $\mathcal{P}$ é uma partição compatível de $T$, então para cada $P \in \mathcal{P}$, $|C \cap P| \leq 1$, logo $|C| \leq |\mathcal{P}|$. Assim,
+    $$\min\{|\mathcal{P}| \mid \mathcal{P} \text{ é partição compatível de } T\} \geq \max\{|C| \mid C \subseteq T \text{ é clique}\}.$$
+    O próximo teorema mostra que vale a igualdade.
+  </p>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Teorema 6.</span> Para cada estrutura de tarefas $(T, s, f)$, existe uma partição compatível $\mathcal{P}$ de $T$ e um clique $C \subseteq T$ tais que $|\mathcal{P}| = |C|$.
+  </div>
+
+  <p>
+    <em>Prova.</em> Por indução em $|T|$. Para $T = \emptyset$, o resultado é claro. Suponha $T \neq \emptyset$. Seja $i \in T$ tal que $s_i = \max\{s_t \mid t \in T\}$, e seja $T' := T \setminus \{i\}$.
+  </p>
+  <p>
+    Por hipótese de indução, existem $\mathcal{P}'$ partição compatível de $T'$ e $C' \subseteq T'$ clique com $|\mathcal{P}'| = |C'|$.
+  </p>
+  <p>
+    Caso 1: existe $Q \in \mathcal{P}'$ tal que $Q \cup \{i\}$ é compatível. Tome $\mathcal{P} := (\mathcal{P}' \setminus \{Q\}) \cup \{Q \cup \{i\}\}$. Então $|\mathcal{P}| = |\mathcal{P}'| = |C'|$.
+  </p>
+  <p>
+    Caso 2: para todo $Q \in \mathcal{P}'$, $Q \cup \{i\}$ não é compatível. Para cada $Q \in \mathcal{P}'$, existe um único $j_Q \in Q$ incompatível com $i$ (provado usando que $s_i$ é máximo). Seja $C := \{i\} \cup \{j_Q \mid Q \in \mathcal{P}'\}$. O conjunto $C$ é um clique (o ponto $s_i$ pertence a todos os intervalos de $C$). Então $\mathcal{P} := \mathcal{P}' \cup \{\{i\}\}$ é compatível e $|\mathcal{P}| = |\mathcal{P}'| + 1 = |C'| + 1 = |C|$. <span class="qed-inline">$\square$</span>
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig2-8.png"
+         alt="Uma partição compatível e um clique do mesmo tamanho.">
+    <figcaption>
+      <strong>Figura 2.8:</strong> Uma partição compatível e um clique do mesmo tamanho. Os três intervalos vermelhos se sobrepõem em um instante comum, formando um clique. Cada linha é um conjunto compatível de tarefas.
+    </figcaption>
+  </figure>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 12 &nbsp; <span class="alg-name">Partição Compatível</span>$(T, s, f)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Uma estrutura de tarefas $(T, s, f)$</div>
+      <div class="ensure"><strong>Garante:</strong> Um par $(\mathcal{P}, C)$ onde $\mathcal{P}$ é partição compatível de $T$, $C \subseteq T$ é clique, e $|\mathcal{P}| = |C|$</div>
+      <ol class="alg-lines">
+        <li><span><span class="alg-kw">se</span> $T = \emptyset$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">retorne</span> $(\emptyset, \emptyset)$</span></li>
+        <li><span>escolha $i \in T$ tal que $s_i = \max\{s_t \mid t \in T\}$</span></li>
+        <li><span>$T' \leftarrow T \setminus \{i\}$</span></li>
+        <li><span>$(\mathcal{P}', C') \leftarrow \text{PartiçãoCompatível}(T', s, f)$</span></li>
+        <li><span><span class="alg-kw">para cada</span> $Q \in \mathcal{P}'$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">se</span> $Q \cup \{i\}$ é compatível <span class="alg-kw">então</span></span></li>
+        <li><span class="indent2">$\mathcal{P} \leftarrow (\mathcal{P}' \setminus \{Q\}) \cup \{Q \cup \{i\}\}$</span></li>
+        <li><span class="indent2"><span class="alg-kw">retorne</span> $(\mathcal{P}, C')$</span></li>
+        <li><span>$C \leftarrow \{i\}$</span></li>
+        <li><span><span class="alg-kw">para cada</span> $Q \in \mathcal{P}'$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1">seja $j_Q$ a tarefa única em $Q$ incompatível com $i$</span></li>
+        <li><span class="indent1">$C \leftarrow C \cup \{j_Q\}$</span></li>
+        <li><span>$\mathcal{P} \leftarrow \mathcal{P}' \cup \{\{i\}\}$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $(\mathcal{P}, C)$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    Uma versão mais eficiente usando fila de prioridade roda em tempo $O(n \lg n)$, onde $n := |T|$.
+  </p>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 13 &nbsp; <span class="alg-name">PartiçãoCompatívelRápida</span>$(T, s, f)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Uma estrutura de tarefas $(T, s, f)$ com $T \neq \emptyset$</div>
+      <div class="ensure"><strong>Garante:</strong> Um par $(\mathcal{P}, C)$ onde $\mathcal{P}$ é partição compatível, $C$ é clique, e $|\mathcal{P}| = |C|$</div>
+      <ol class="alg-lines">
+        <li><span>seja $t_0, \ldots, t_{n-1}$ uma ordenação de $T$ com $s_{t_0} \leq \cdots \leq s_{t_{n-1}}$</span></li>
+        <li><span>$\mathcal{P} \leftarrow \emptyset$</span></li>
+        <li><span>seja $H$ uma fila de prioridade vazia</span></li>
+        <li><span><span class="alg-kw">para</span> $r \leftarrow 0$ <span class="alg-kw">até</span> $n-1$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1">$i \leftarrow t_r$</span></li>
+        <li><span class="indent1"><span class="alg-kw">se</span> $H \neq \emptyset$ e $\min(H) \leq s_i$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent2">$(P, v) \leftarrow \mathrm{remover}(H)$</span></li>
+        <li><span class="indent2">$\mathcal{P} \leftarrow (\mathcal{P} \setminus \{P\}) \cup \{P \cup \{i\}\}$</span></li>
+        <li><span class="indent2">inserir$(H, (P \cup \{i\}, f_i))$</span></li>
+        <li><span class="indent1"><span class="alg-kw">senão</span></span></li>
+        <li><span class="indent2">$k \leftarrow i$</span></li>
+        <li><span class="indent2">$P \leftarrow \{i\}$</span></li>
+        <li><span class="indent2">$\mathcal{P} \leftarrow \mathcal{P} \cup \{P\}$</span></li>
+        <li><span class="indent2">inserir$(H, (P, f_i))$</span></li>
+        <li><span>$C \leftarrow \emptyset$</span></li>
+        <li><span><span class="alg-kw">para</span> $t \in T$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">se</span> $s_t \leq s_k < f_t$ <span class="alg-kw">então</span> $C \leftarrow C \cup \{t\}$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $(\mathcal{P}, C)$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 2.11</span>
+    Para cada $r \in [0 : n)$, seja $T_r := \{t_0, \ldots, t_r\}$. Mostre que o seguinte invariante vale ao final da iteração $r$ do primeiro laço:
+    (i) $\mathcal{P}$ é uma partição compatível de $T_r$, e
+    (ii) existe um clique $C \subseteq T_r$ tal que $k \in C$ e $|C| = |\mathcal{P}|$.
+  </div>
+
+  <!-- ===== 2.4 Codificação de Huffman ===== -->
+  <h2 id="huffman">2.4 Codificação de Huffman</h2>
+
+  <p>
+    Um <em>alfabeto</em> é um conjunto finito e não vazio de elementos chamados <em>símbolos</em>. Uma <em>palavra</em> sobre $\Sigma$ é uma sequência $w : [0 : n) \to \Sigma$. O conjunto de palavras sobre $\Sigma$ é denotado por $\Sigma^*$, e o conjunto de palavras não vazias por $\Sigma^+$.
+  </p>
+
+  <p>
+    Um par $(\Sigma, f)$, onde $\Sigma$ é um alfabeto e $f : \Sigma \to \mathbb{N}_+$, é chamado de <em>tabela de frequências</em>. Para cada $a \in \Sigma$, $f(a)$ é a <em>frequência</em> do símbolo $a$.
+  </p>
+
+  <p>
+    Uma <em>codificação binária</em> de um alfabeto $\Sigma$ é uma função $\sigma : \Sigma \to \{0,1\}^+$. Dizemos que $\sigma$ é <em>livre de prefixo</em> (<em>prefix-free</em>) se, para todo $a_1, a_2 \in \Sigma$ com $a_1 \neq a_2$, a palavra $\sigma(a_1)$ não é prefixo de $\sigma(a_2)$.
+  </p>
+
+  <p>
+    O <em>custo</em> de $\sigma$ em relação à tabela de frequências $(\Sigma, f)$ é
+    $$\mathrm{custo}(\sigma) := \sum_{a \in \Sigma} f(a) \, |\sigma(a)|.$$
+    O problema é encontrar uma codificação binária livre de prefixo de custo mínimo.
+  </p>
+
+  <p>
+    A ideia do algoritmo de Huffman é combinar os dois símbolos de menor frequência em um novo símbolo, resolver o problema reduzido e depois expandir. Formalmente, dada uma tabela de frequências $(\Sigma, f)$, a <em>contração</em> de $(a_1, a_2)$ para $\alpha$ produz $(\Sigma', f')$ onde $\Sigma' := (\Sigma \setminus \{a_1, a_2\}) \cup \{\alpha\}$ e $f'(\alpha) = f(a_1) + f(a_2)$.
+  </p>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Lema 3.</span> Seja $(\Sigma, f)$ uma tabela de frequências com $|\Sigma| \geq 2$. Se $\sigma$ é uma codificação binária livre de prefixo mínima de $\Sigma$ e $b \in \Sigma$ é tal que $|\sigma(b)| = \max\{|\sigma(a)| \mid a \in \Sigma\}$, então $b$ tem um irmão em $\sigma$.
+  </div>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Lema 4.</span> Seja $(\Sigma, f)$ uma tabela de frequências, e seja $\sigma$ uma codificação binária de $\Sigma$. Então, para todo $a_1, a_2 \in \Sigma$ distintos, se $f(a_1) \leq f(a_2)$ e $|\sigma(a_1)| \leq |\sigma(a_2)|$, então $\mathrm{custo}(\sigma[a_1 \leftrightarrow a_2]) \leq \mathrm{custo}(\sigma)$.
+  </div>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Lema 5.</span> Seja $(\Sigma, f)$ uma tabela de frequências com $|\Sigma| \geq 2$, e sejam $a_1, a_2 \in \Sigma$ os dois símbolos de menor frequência (com $a_1 \neq a_2$). Então existe uma codificação binária livre de prefixo mínima $\sigma$ de $\Sigma$ tal que $|\sigma(a_1)| = \max\{|\sigma(a)| \mid a \in \Sigma\}$ e $a_1$ e $a_2$ são irmãos em $\sigma$.
+  </div>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Lema 6.</span> Seja $(\Sigma, f)$ uma tabela de frequências e sejam $a_1, a_2 \in \Sigma$ símbolos distintos. Seja $\alpha \notin \Sigma$ e $(\Sigma', f') := (\Sigma, f)/(a_1, a_2 \mapsto \alpha)$. Se $\sigma'$ é uma codificação binária de $\Sigma'$ e $\sigma := \sigma'[\alpha \mapsto (a_1, a_2)]$, então $\mathrm{custo}_f(\sigma) = \mathrm{custo}_{f'}(\sigma') + f(a_1) + f(a_2)$.
+  </div>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Teorema 7.</span> Seja $(\Sigma, f)$ uma tabela de frequências com $|\Sigma| \geq 3$, e sejam $a_1, a_2 \in \Sigma$ os dois símbolos de menor frequência. Seja $(\Sigma', f') := (\Sigma, f)/(a_1, a_2 \mapsto \alpha)$. Se $\sigma'$ é uma codificação binária livre de prefixo mínima de $(\Sigma', f')$, então $\sigma'[\alpha \mapsto (a_1, a_2)]$ é uma codificação binária livre de prefixo mínima de $(\Sigma, f)$.
+  </div>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 14 &nbsp; <span class="alg-name">Huffman</span>$(\Sigma, f)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Uma tabela de frequências $(\Sigma, f)$ com $\Sigma \neq \emptyset$</div>
+      <div class="ensure"><strong>Garante:</strong> Uma codificação binária livre de prefixo mínima de $\Sigma$</div>
+      <ol class="alg-lines">
+        <li><span><span class="alg-kw">se</span> $|\Sigma| = 1$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent1">seja $a$ o único elemento de $\Sigma$</span></li>
+        <li><span class="indent1"><span class="alg-kw">retorne</span> $\{(a, 0)\}$</span></li>
+        <li><span><span class="alg-kw">se</span> $|\Sigma| = 2$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent1">sejam $a_1, a_2$ os dois elementos de $\Sigma$</span></li>
+        <li><span class="indent1"><span class="alg-kw">retorne</span> $\{(a_1, 0), (a_2, 1)\}$</span></li>
+        <li><span>escolha $a_1 \in \Sigma$ com $f(a_1) = \min\{f(a) \mid a \in \Sigma\}$</span></li>
+        <li><span>escolha $a_2 \in \Sigma \setminus \{a_1\}$ com $f(a_2) = \min\{f(a) \mid a \in \Sigma \setminus \{a_1\}\}$</span></li>
+        <li><span>escolha símbolo $\alpha \notin \Sigma$</span></li>
+        <li><span>$(\Sigma', f') \leftarrow (\Sigma, f)/(a_1, a_2 \mapsto \alpha)$</span></li>
+        <li><span>$\sigma' \leftarrow \text{Huffman}(\Sigma', f')$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $\sigma'[\alpha \mapsto (a_1, a_2)]$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <figure>
+    <img src="assets/figures/fig2-11.png"
+         alt="Contrações recursivas e expansão do algoritmo de Huffman.">
+    <figcaption>
+      <strong>Figura 2.11:</strong> Contrações recursivas e expansão no algoritmo de Huffman para o alfabeto $\{a:5, b:9, c:12, d:13, e:16, f:45\}$.
+    </figcaption>
+  </figure>
+
+  <figure>
+    <img src="assets/figures/fig2-12.png"
+         alt="Árvore de Huffman para o exemplo.">
+    <figcaption>
+      <strong>Figura 2.12:</strong> A árvore de Huffman correspondente. Os caminhos da raiz até as folhas codificam cada símbolo. A codificação resultante é: $\sigma(f) = 0$, $\sigma(c) = 100$, $\sigma(d) = 101$, $\sigma(a) = 1100$, $\sigma(b) = 1101$, $\sigma(e) = 111$.
+    </figcaption>
+  </figure>
+
+  <h3>2.4.1 A representação em árvore</h3>
+
+  <p>
+    Uma <em>árvore binária completa</em> é uma árvore em que todo nó interno tem exatamente dois filhos. Cada codificação binária livre de prefixo $\sigma$ de $\Sigma$ corresponde a uma árvore binária completa cujas folhas estão em bijeção com $\Sigma$: o caminho da raiz até a folha rotulada $a$ codifica $\sigma(a)$, onde $0$ representa ir para o filho esquerdo e $1$ para o filho direito.
+  </p>
+
+  <figure>
+    <img src="assets/figures/fig2-13.png"
+         alt="Representação em árvore de uma codificação de Huffman.">
+    <figcaption>
+      <strong>Figura 2.13:</strong> Representação em árvore de uma codificação de Huffman. As folhas correspondem aos símbolos do alfabeto.
+    </figcaption>
+  </figure>
+
+  <!-- ===== 2.5 Mochila fracionária ===== -->
+  <h2 id="mochila">2.5 O problema da mochila fracionária</h2>
+
+  <p>
+    Uma <em>instância da mochila fracionária</em> é uma quádrupla $(I, w, v, C)$, onde $I$ é um conjunto finito cujos elementos são chamados de <em>itens</em>, $C \in \mathbb{R}_+$, e $w, v : I \to \mathbb{R}_{++}$. Para cada item $i \in I$, o número $w_i := w(i)$ é chamado de <em>peso</em> de $i$ e $v_i := v(i)$ é chamado de <em>valor</em> de $i$. O número $C$ é a <em>capacidade</em>.
+  </p>
+
+  <p>
+    Para cada item $i \in I$, o número $e_i := v_i / w_i$ é chamado de <em>eficiência</em> de $i$. Uma <em>mochila fracionária</em> para $(I, w, v, C)$ é uma função $x : I \to [0,1]$. O peso de $x$ é $w(x) := \sum_{i \in I} w_i x_i$, e o valor de $x$ é $v(x) := \sum_{i \in I} v_i x_i$. Dizemos que $x$ é <em>viável</em> se $w(x) \leq C$.
+  </p>
+
+  <p>
+    O <em>problema da mochila fracionária</em> consiste em encontrar uma mochila fracionária viável $x$ de valor máximo.
+  </p>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Lema 7.</span> Seja $(I, w, v, C)$ uma instância da mochila fracionária, e seja $x : I \to [0,1]$ uma mochila viável. Suponha que $i, j \in I$ são itens distintos tais que $x_i > 0$, $x_j < 1$, e $e_j \geq e_i$. Então existe uma mochila viável $x'$ tal que:
+    (i) $x'_j = 1$ ou $x'_i = 0$;
+    (ii) $x'_k = x_k$ para todo $k \in I \setminus \{i,j\}$; e
+    (iii) $v(x') \geq v(x)$.
+  </div>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Lema 8.</span> Seja $(I, w, v, C)$ uma instância com $I \neq \emptyset$, e seja $j \in I$ um item de eficiência máxima. Seja $\alpha := \min\{1, C/w_j\}$. Para toda mochila viável $x : I \to [0,1]$, existe uma mochila viável $z : I \to [0,1]$ tal que $z_j = \alpha$ e $v(z) \geq v(x)$.
+  </div>
+
+  <div class="theorem-box">
+    <span class="theorem-label">Teorema 8.</span> Seja $(I, w, v, C)$ uma instância com $I \neq \emptyset$, e seja $j \in I$ de eficiência máxima. Seja $\alpha := \min\{1, C/w_j\}$ e $I' := I \setminus \{j\}$. Se $x'$ é uma mochila ótima para $(I', w, v, C - w_j \alpha)$, então $x := x' \cup \{(j, \alpha)\}$ é uma mochila ótima para $(I, w, v, C)$.
+  </div>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 19 &nbsp; <span class="alg-name">MochilaFracionária</span>$(I, w, v, C)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Uma instância da mochila fracionária $(I, w, v, C)$</div>
+      <div class="ensure"><strong>Garante:</strong> Uma mochila fracionária ótima para $(I, w, v, C)$</div>
+      <ol class="alg-lines">
+        <li><span><span class="alg-kw">se</span> $I = \emptyset$ <span class="alg-kw">então</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">retorne</span> a função vazia</span></li>
+        <li><span>escolha $j \in I$ tal que $e_j \geq e_i$ para todo $i \in I$</span></li>
+        <li><span>$\alpha \leftarrow \min\!\left\{1, \dfrac{C}{w_j}\right\}$</span></li>
+        <li><span>$I' \leftarrow I \setminus \{j\}$</span></li>
+        <li><span>$x' \leftarrow \text{MochilaFracionária}(I', w, v, C - w_j \alpha)$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $x' \cup \{(j, \alpha)\}$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="algorithm">
+    <div class="algorithm-header">
+      Algoritmo 20 &nbsp; <span class="alg-name">MochilaFracionáriaIterativa</span>$(I, w, v, C)$
+    </div>
+    <div class="algorithm-body">
+      <div class="require"><strong>Requer:</strong> Uma instância da mochila fracionária $(I, w, v, C)$</div>
+      <div class="ensure"><strong>Garante:</strong> Uma mochila fracionária ótima para $(I, w, v, C)$</div>
+      <ol class="alg-lines">
+        <li><span>ordene os itens como $i_1, i_2, \ldots, i_n$ de modo que $e_{i_1} \geq e_{i_2} \geq \cdots \geq e_{i_n}$</span></li>
+        <li><span>$R \leftarrow C$</span></li>
+        <li><span><span class="alg-kw">para cada</span> $i \in I$ <span class="alg-kw">faça</span> $x_i \leftarrow 0$</span></li>
+        <li><span><span class="alg-kw">para</span> $r = 1, 2, \ldots, n$ <span class="alg-kw">faça</span></span></li>
+        <li><span class="indent1"><span class="alg-kw">se</span> $R = 0$ <span class="alg-kw">então retorne</span> $x$</span></li>
+        <li><span class="indent1">$i \leftarrow i_r$</span></li>
+        <li><span class="indent1">$x_i \leftarrow \min\!\left\{1, \dfrac{R}{w_i}\right\}$</span></li>
+        <li><span class="indent1">$R \leftarrow R - w_i x_i$</span></li>
+        <li><span><span class="alg-kw">retorne</span> $x$</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    É claro que é possível implementar o algoritmo para rodar em tempo $O(n \lg n)$, onde $n := |I|$: basta ordenar os itens por eficiência decrescente usando qualquer algoritmo de ordenação eficiente.
+  </p>
+
+  <!-- ===== 2.6 Exercícios ===== -->
+  <h2 id="exercicios">2.6 Mais exercícios</h2>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 2.13</span>
+    A entrada é uma sequência $x_0, x_1, \ldots, x_{n-1}$ de números reais, onde $n$ é par. Seja $P$ uma partição do conjunto de índices $[0 : n)$ em partes de tamanho 2. O valor de $P$ é o número
+    $$\max\{x_i + x_j \mid \{i, j\} \in P\}.$$
+    Projete um algoritmo que encontra uma partição de valor mínimo. Prove a corretude do seu algoritmo e determine sua complexidade de tempo.
+  </div>
+
+  <div class="exercise">
+    <span class="ex-label">Exercício 2.14</span>
+    Seja $J$ um conjunto finito de tarefas, com $n := |J|$. Sejam $t, w : J \to \mathbb{R}_{++}$ funções. Para cada $j \in J$, chamamos $t(j)$ de <em>tempo de processamento</em> de $j$ e $w(j)$ de <em>peso</em> de $j$. Uma <em>escala</em> de $J$ é uma ordenação dos elementos de $J$, isto é, uma bijeção $\sigma : [0 : n) \to J$. Para uma escala $\sigma$ e uma tarefa $j \in J$, o <em>tempo de conclusão</em> de $j$ com respeito a $\sigma$ é
+    $$c_\sigma(j) := \sum_{i \in [0 : \sigma^{-1}(j)]} t(\sigma(i)).$$
+    O valor de $\sigma$ é
+    $$\sum_{j \in J} w(j) \, c_\sigma(j).$$
+    Projete um algoritmo eficiente que retorna uma escala de valor mínimo. Prove que seu algoritmo é correto e determine sua complexidade de tempo. <em>Sugestão:</em> preste atenção ao quociente $w(j)/t(j)$.
+  </div>
+
+  <div style="margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:0.82rem; color:#888; text-align:center;">
+    Tradução para o Português do Brasil. Conteúdo original © Mario Leston-Rey, 2026.
+  </div>
+
+</div>
+</body>
+</html>
